@@ -219,6 +219,98 @@ void pd_node_free(PdNode *node) {
     free(node);
 }
 
+/* --- Deep clone --- */
+
+static PdNode **clone_child_array(PdNode **children, int count) {
+    if (!children || count == 0) return NULL;
+    PdNode **arr = malloc((size_t)count * sizeof(PdNode *));
+    if (!arr) return NULL;
+    for (int i = 0; i < count; i++) {
+        arr[i] = pd_node_clone(children[i]);
+        if (!arr[i]) {
+            for (int j = 0; j < i; j++) pd_node_free(arr[j]);
+            free(arr);
+            return NULL;
+        }
+    }
+    return arr;
+}
+
+PdNode *pd_node_clone(const PdNode *node) {
+    if (!node) return NULL;
+
+    switch (node->type) {
+    case NODE_TEXT:
+        return pd_node_text(node->as.text.value, node->as.text.value_len,
+                            node->span);
+    case NODE_ESCAPE:
+        return pd_node_escape(node->as.text.value, node->as.text.value_len,
+                              node->span);
+    case NODE_RAW_STRING:
+        return pd_node_raw_string(node->as.text.value,
+                                  node->as.text.value_len, node->span);
+    case NODE_REQUIRED_MARKER:
+        return pd_node_required_marker(node->span);
+
+    case NODE_CODE_SECTION: {
+        PdNode **kids = clone_child_array(node->as.code_section.children,
+                                          node->as.code_section.count);
+        if (node->as.code_section.count > 0 && !kids) return NULL;
+        return pd_node_code_section(kids, node->as.code_section.count,
+                                    node->span);
+    }
+    case NODE_INTERP_STRING: {
+        PdNode **parts = clone_child_array(node->as.interp_string.parts,
+                                           node->as.interp_string.count);
+        if (node->as.interp_string.count > 0 && !parts) return NULL;
+        return pd_node_interp_string(parts, node->as.interp_string.count,
+                                     node->span);
+    }
+    case NODE_NAMED_ARG: {
+        PdNode *val = pd_node_clone(node->as.named_arg.value);
+        if (node->as.named_arg.value && !val) return NULL;
+        return pd_node_named_arg(node->as.named_arg.name,
+                                 node->as.named_arg.name_len,
+                                 node->as.named_arg.name_span,
+                                 val, node->span);
+    }
+    case NODE_BODY: {
+        PdNode **kids = clone_child_array(node->as.body.children,
+                                          node->as.body.count);
+        if (node->as.body.count > 0 && !kids) return NULL;
+        return pd_node_body(kids, node->as.body.count, node->span);
+    }
+    case NODE_MACRO_CALL: {
+        PdNode **args = clone_child_array(node->as.macro_call.args,
+                                          node->as.macro_call.arg_count);
+        if (node->as.macro_call.arg_count > 0 && !args) return NULL;
+        PdNode *body = pd_node_clone(node->as.macro_call.body);
+        if (node->as.macro_call.body && !body) {
+            free_child_array(args, node->as.macro_call.arg_count);
+            return NULL;
+        }
+        return pd_node_macro_call(node->as.macro_call.name,
+                                  node->as.macro_call.name_len,
+                                  args, node->as.macro_call.arg_count,
+                                  body, node->as.macro_call.bracketed,
+                                  node->span);
+    }
+    case NODE_PARAGRAPH: {
+        PdNode **kids = clone_child_array(node->as.paragraph.children,
+                                          node->as.paragraph.count);
+        if (node->as.paragraph.count > 0 && !kids) return NULL;
+        return pd_node_paragraph(kids, node->as.paragraph.count, node->span);
+    }
+    case NODE_DOCUMENT: {
+        PdNode **kids = clone_child_array(node->as.document.children,
+                                          node->as.document.count);
+        if (node->as.document.count > 0 && !kids) return NULL;
+        return pd_node_document(kids, node->as.document.count, node->span);
+    }
+    }
+    return NULL;
+}
+
 /* --- coalesce_text --- */
 
 void coalesce_text(NodeArray *arr) {

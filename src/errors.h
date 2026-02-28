@@ -20,12 +20,13 @@ typedef enum {
  */
 typedef struct {
     PdErrorKind kind;
-    const char *message;       /* static, not owned */
+    const char *message;       /* static or points to detail (not owned directly) */
     Position position;         /* for lex errors */
     Span span;                 /* for parse/eval errors */
     const char *source;        /* not owned — pointer to source buffer */
     const char *filename;      /* not owned */
     char *formatted;           /* heap-allocated formatted string, caller frees */
+    char *detail;              /* heap-allocated detail message for eval errors */
 } PdError;
 
 /* Initialize an error struct to no-error state. */
@@ -52,5 +53,11 @@ int pd_lex_error(PdError *err, const char *message, Position pos,
  */
 int pd_parse_error(PdError *err, const char *message, Span span,
                    const char *source, const char *filename);
+
+/*
+ * Set an eval error. Returns -1 for convenience.
+ */
+int pd_eval_error(PdError *err, const char *message, Span span,
+                  const char *source, const char *filename);
 
 #endif /* PD_ERRORS_H */

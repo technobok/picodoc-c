@@ -96,6 +96,10 @@ PdNode *pd_node_document(PdNode **children, int count, Span span);
 /* Recursive destructor — frees node and all children. */
 void pd_node_free(PdNode *node);
 
+/* Deep clone — returns an independent copy of the entire subtree.
+ * Returns NULL on allocation failure. */
+PdNode *pd_node_clone(const PdNode *node);
+
 /* Coalesce adjacent NODE_TEXT nodes in a NodeArray in-place. */
 void coalesce_text(NodeArray *arr);
 

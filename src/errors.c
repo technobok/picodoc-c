@@ -11,11 +11,14 @@ void pd_error_init(PdError *err) {
     err->source = NULL;
     err->filename = NULL;
     err->formatted = NULL;
+    err->detail = NULL;
 }
 
 void pd_error_free(PdError *err) {
     free(err->formatted);
     err->formatted = NULL;
+    free(err->detail);
+    err->detail = NULL;
 }
 
 /*
@@ -143,6 +146,16 @@ int pd_lex_error(PdError *err, const char *message, Position pos,
 int pd_parse_error(PdError *err, const char *message, Span span,
                    const char *source, const char *filename) {
     err->kind = PD_ERR_PARSE;
+    err->message = message;
+    err->span = span;
+    err->source = source;
+    err->filename = filename;
+    return -1;
+}
+
+int pd_eval_error(PdError *err, const char *message, Span span,
+                  const char *source, const char *filename) {
+    err->kind = PD_ERR_EVAL;
     err->message = message;
     err->span = span;
     err->source = source;
