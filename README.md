@@ -39,17 +39,20 @@ Build it with `make picodoc-lsp`.
 
 ### Neovim
 
+Add the bundled editor support to your runtimepath and configure the LSP:
+
 ```lua
-vim.api.nvim_create_autocmd('FileType', {
-  pattern = 'picodoc',
-  callback = function()
-    vim.lsp.start({
-      name = 'picodoc-lsp',
-      cmd = { '/path/to/picodoc-c/picodoc-lsp' },
-    })
-  end,
+vim.opt.runtimepath:append("/path/to/picodoc-c/editor/nvim")
+
+vim.lsp.config("picodoc", {
+  cmd = { "/path/to/picodoc-c/picodoc-lsp" },
+  filetypes = { "picodoc" },
 })
+vim.lsp.enable("picodoc")
 ```
+
+The `editor/nvim` directory provides filetype detection, syntax highlighting,
+and filetype settings for `.pdoc` files.
 
 ### VS Code
 
@@ -80,6 +83,7 @@ src/        lexer, parser, AST, builtins, evaluator, renderer, CLI, filters,
             tokens, strings, errors, LSP server
 lib/        vendored dependencies — bstrlib, utf8.h, stb_ds.h, cJSON
 tests/      test suite (Unity framework, also vendored)
+editor/     editor support (Neovim: ftdetect, ftplugin, syntax)
 docs/       reference and tutorial (.pdoc sources, style assets, generated HTML)
 examples/   sample .pdoc documents with expected HTML output
 ```
