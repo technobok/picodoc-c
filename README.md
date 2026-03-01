@@ -5,8 +5,10 @@ ported from the Python reference implementation.
 
 ## Status
 
-Work in progress. The lexer is complete (69 tests passing). Parser, evaluator,
-and HTML renderer are not yet implemented.
+All components implemented: lexer, parser, AST, builtins, evaluator,
+renderer, CLI, and filters. 364 tests passing.
+
+Documentation (reference and tutorial) builds from `.pdoc` sources in `docs/`.
 
 ## Building
 
@@ -21,11 +23,29 @@ Requires a C11 compiler (cc).
 ## Project structure
 
 ```
-src/        tokens, strings, errors, lexer (and eventually parser/eval/render)
+src/        lexer, parser, AST, builtins, evaluator, renderer, CLI, filters,
+            tokens, strings, errors
 lib/        vendored dependencies — bstrlib, utf8.h, stb_ds.h
 tests/      test suite (Unity framework, also vendored)
+docs/       reference and tutorial (.pdoc sources, style assets, generated HTML)
 examples/   sample .pdoc documents with expected HTML output
 ```
+
+Source files in `src/`:
+
+| File | Purpose |
+|------|---------|
+| `lexer.c` | Tokenization |
+| `parser.c` | Token stream to AST |
+| `ast.c` | AST node definitions |
+| `builtins.c` | Built-in macro registry |
+| `eval.c` | Multi-pass macro expansion |
+| `render.c` | AST to HTML |
+| `cli.c` | Command-line interface |
+| `filters.c` | External filter protocol |
+| `tokens.c` | Token types and helpers |
+| `strings.c` | String utilities |
+| `errors.c` | Error types and formatting |
 
 ## Dependencies
 

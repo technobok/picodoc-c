@@ -1,4 +1,3 @@
 *.o
 run_tests
 picodoc
-docs/*.html

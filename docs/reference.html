@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PicoDoc Language Reference</title>
+<link rel="stylesheet" href="style/picodoc.css">
+<script src="style/tocbot.min.js"></script>
+<script src="style/init.js"></script>
+<script src="style/prism.min.js"></script>
+<script src="style/prism-picodoc.js"></script>
+</head>
+<body class="toc-sidebar">
+<nav id="nav">
+  <div class="doc-wrapper">
+    <a title="PicoDoc" href="../docs/">PicoDoc</a>
+  </div>
+
+  <label>
+    <input id="mode-checkbox" class="mode-checkbox" type="checkbox" />
+    <div class="mode-slot">
+      <div class="sun-icon-wrapper">
+        <svg
+          class="sun-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+      </div>
+      <div class="mode-button"></div>
+      <div class="moon-icon-wrapper">
+        <svg
+          class="moon-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </div>
+    </div>
+  </label>
+
+
+</nav>
+<header>
+  <h1 id="picodoc-language-reference"><a href="#picodoc-language-reference">PicoDoc Language Reference</a></h1>
+</header>
+<nav class="toc-sidebar" id="toc">
+  <div id="tocfile">
+Table of Contents</div>
+
+  <ul>
+<li><a href="#picodoc-language-reference">PicoDoc Language Reference</a>
+<ul>
+<li><a href="#overview">Overview</a>
+</li>
+<li><a href="#lexical-structure">Lexical Structure</a>
+<ul>
+<li><a href="#identifiers">Identifiers</a>
+</li>
+<li><a href="#escape-sequences">Escape Sequences</a>
+</li>
+<li><a href="#comments">Comments</a>
+</li>
+</ul>
+</li>
+<li><a href="#macro-calls">Macro Calls</a>
+<ul>
+<li><a href="#unbracketed-form">Unbracketed Form</a>
+</li>
+<li><a href="#bracketed-form">Bracketed Form</a>
+</li>
+<li><a href="#named-arguments">Named Arguments</a>
+</li>
+<li><a href="#the-body-argument">The Body Argument</a>
+</li>
+</ul>
+</li>
+<li><a href="#string-literals">String Literals</a>
+<ul>
+<li><a href="#interpreted-strings">Interpreted Strings</a>
+</li>
+<li><a href="#raw-strings">Raw Strings</a>
+</li>
+<li><a href="#empty-string">Empty String</a>
+</li>
+<li><a href="#whitespace-stripping">Whitespace Stripping</a>
+</li>
+<li><a href="#adjacent-string-restriction">Adjacent String Restriction</a>
+</li>
+</ul>
+</li>
+<li><a href="#builtin-macros">Builtin Macros</a>
+<ul>
+<li><a href="#structural-macros">Structural Macros</a>
+</li>
+<li><a href="#inline-macros">Inline Macros</a>
+</li>
+<li><a href="#code-and-literal-macros">Code and Literal Macros</a>
+</li>
+<li><a href="#list-macros">List Macros</a>
+</li>
+<li><a href="#table-macros">Table Macros</a>
+</li>
+<li><a href="#wrapper-container-macros">Wrapper / Container Macros</a>
+</li>
+<li><a href="#document-macros-doc-namespace">Document Macros (doc.* Namespace)</a>
+</li>
+<li><a href="#expansion-time-macros">Expansion-Time Macros</a>
+</li>
+<li><a href="#alias-table">Alias Table</a>
+</li>
+</ul>
+</li>
+<li><a href="#user-defined-macros">User-Defined Macros</a>
+<ul>
+<li><a href="#defining-macros-with-set">Defining Macros with #set</a>
+</li>
+<li><a href="#parameters">Parameters</a>
+</li>
+<li><a href="#calling-user-macros">Calling User Macros</a>
+</li>
+<li><a href="#out-of-order-definitions">Out-of-Order Definitions</a>
+</li>
+<li><a href="#duplicate-detection">Duplicate Detection</a>
+</li>
+<li><a href="#scope-and-shadowing">Scope and Shadowing</a>
+</li>
+<li><a href="#overriding-builtin-macros">Overriding Builtin Macros</a>
+</li>
+<li><a href="#macro-references-as-argument-values">Macro References as Argument Values</a>
+</li>
+</ul>
+</li>
+<li><a href="#conditionals">Conditionals</a>
+</li>
+<li><a href="#includes">Includes</a>
+</li>
+<li><a href="#global-environment-env">Global Environment (env.*)</a>
+<ul>
+<li><a href="#defining-environment-values">Defining Environment Values</a>
+</li>
+<li><a href="#accessing-environment-values">Accessing Environment Values</a>
+</li>
+<li><a href="#immutability">Immutability</a>
+</li>
+</ul>
+</li>
+<li><a href="#external-filters">External Filters</a>
+<ul>
+<li><a href="#protocol">Protocol</a>
+</li>
+<li><a href="#discovery">Discovery</a>
+</li>
+<li><a href="#timeout">Timeout</a>
+</li>
+</ul>
+</li>
+<li><a href="#configuration-file">Configuration File</a>
+</li>
+<li><a href="#command-line-interface">Command-Line Interface</a>
+<ul>
+<li><a href="#options">Options</a>
+</li>
+<li><a href="#exit-codes">Exit Codes</a>
+</li>
+</ul>
+</li>
+<li><a href="#expansion-model">Expansion Model</a>
+<ul>
+<li><a href="#multi-pass-expansion">Multi-Pass Expansion</a>
+</li>
+<li><a href="#call-stack-depth">Call Stack Depth</a>
+</li>
+<li><a href="#preventing-re-expansion">Preventing Re-Expansion</a>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</nav>
+<main id="content">
+<h2 id="overview"><a href="#overview">1. Overview</a></h2>
+<p>PicoDoc is a macro-based markup language that compiles to HTML. Every construct
+in the language (headings, bold text, links, user-defined templates) is a macro
+call. This regularity means there is only one syntax to learn.</p>
+<p>Design principles:</p>
+<ul>
+<li><strong>One abstraction</strong> : macros are the only construct.</li>
+<li><strong>Named arguments</strong> : all arguments are named, eliminating
+    positional ambiguity.</li>
+<li><strong>Strict parsing</strong> : invalid input is rejected with clear error
+    messages rather than silently guessed at.</li>
+<li><strong>UTF-8 only</strong> : no encoding detection or fallback.</li>
+<li><strong>HTML target</strong> : the primary output format is HTML.</li>
+</ul>
+<p>The file extension is <code>.pdoc</code>.</p>
+<h2 id="lexical-structure"><a href="#lexical-structure">2. Lexical Structure</a></h2>
+<h3 id="identifiers"><a href="#identifiers">2.1. Identifiers</a></h3>
+<p>An identifier consists of one or more letters, digits, dots, or special
+characters:</p>
+<pre><code>! $ % &amp; * + - / &lt; &gt; @ ^ _ ~ |</code></pre>
+<p>Dots allow namespacing (e.g. <code>env.mode</code>, <code>doc.lang</code>). The
+identifier terminates at the first character that is not in the set above, such
+as whitespace, colons, quotes, brackets, equals signs, hash, or backslash.</p>
+<h3 id="escape-sequences"><a href="#escape-sequences">2.2. Escape Sequences</a></h3>
+<p>Backslash is the escape prefix. Backslash followed by any character not on the
+valid list for the current context is a syntax error.</p>
+<p><strong>Prose escapes</strong> (in body text and barewords):</p>
+<table>
+<thead>
+<tr><th>Sequence</th><th>Produces</th></tr>
+</thead>
+<tbody>
+<tr><td><code>\\</code></td><td>Literal backslash</td></tr>
+<tr><td><code>\#</code></td><td>Literal #</td></tr>
+<tr><td><code>\[</code></td><td>Literal [</td></tr>
+<tr><td><code>\]</code></td><td>Literal ]</td></tr>
+<tr><td><code>\xHH</code></td><td>Unicode codepoint U+0000 to U+00FF</td></tr>
+<tr><td><code>\UHHHHHHHH</code></td><td>Unicode codepoint (8 hex digits)</td></tr>
+</tbody>
+</table>
+<p><strong>String escapes</strong> (inside interpreted string literals):</p>
+<table>
+<thead>
+<tr><th>Sequence</th><th>Produces</th></tr>
+</thead>
+<tbody>
+<tr><td><code>\\</code></td><td>Literal backslash</td></tr>
+<tr><td><code>\"</code></td><td>Literal double quote</td></tr>
+<tr><td><code>\[</code></td><td>Enter code mode (macro expansion)</td></tr>
+<tr><td><code>\n</code></td><td>Newline</td></tr>
+<tr><td><code>\t</code></td><td>Tab</td></tr>
+<tr><td><code>\xHH</code></td><td>Unicode codepoint U+0000 to U+00FF</td></tr>
+<tr><td><code>\UHHHHHHHH</code></td><td>Unicode codepoint (8 hex digits)</td></tr>
+</tbody>
+</table>
+<p>Note that <code>\[</code> has different meaning in the two contexts: in prose it
+produces a literal [, while in strings it enters code mode.</p>
+<h3 id="comments"><a href="#comments">2.3. Comments</a></h3>
+<p>The #comment macro (alias #//) removes its body from the output entirely.
+Three forms are available:</p>
+<ol>
+<li><strong>Inline</strong> (colon body to end of line): <code>#//: This text will not appear.</code></li>
+<li><strong>Bracketed</strong> (multi-line): <code>[#// : Multi-line comment here.]</code></li>
+<li><strong>Paragraph body</strong> (colon + following paragraph):</li>
+</ol>
+<pre><code class="language-picodoc">#//: This text will not appear.
+
+[#// : Multi-line comments
+  use the bracketed form.]
+
+#//:
+This entire paragraph
+is a comment.</code></pre>
+<h2 id="macro-calls"><a href="#macro-calls">3. Macro Calls</a></h2>
+<p>There are two forms of macro call: unbracketed and bracketed. The parser does
+not need to consult macro definitions to parse either form.</p>
+<h3 id="unbracketed-form"><a href="#unbracketed-form">3.1. Unbracketed Form</a></h3>
+<p>A macro call begins with # followed immediately by the macro identifier.
+After the identifier, the parser examines the next token:</p>
+<ol>
+<li>If the token matches <code>identifier=</code> (no whitespace before
+    the equals sign), it enters argument mode and consumes name=value pairs.</li>
+<li>If the token is a colon, it enters body mode.</li>
+<li>If the token is a string literal opening, it enters body mode
+    with the string as body.</li>
+<li>Otherwise the call is complete with no arguments and no body.
+    Remaining text on the line is prose.</li>
+</ol>
+<pre><code class="language-picodoc">#doc.title: Document Title
+#-: Visible Heading
+#hr
+#p"Explicit paragraph."</code></pre>
+<p>In argument mode, the parser consumes name=value pairs. If the next token is
+not a name=value pair, a colon, or a string literal, the call is complete and
+the remaining text on the line is prose. After a colon body (to end of line) or
+a string literal body, the call is also complete and any remaining text is
+prose.</p>
+<pre><code class="language-picodoc">#code language=python : print("hello")
+#doc.meta name=viewport content="width=device-width"</code></pre>
+<h3 id="bracketed-form"><a href="#bracketed-form">3.2. Bracketed Form</a></h3>
+<p>A macro call enclosed in square brackets: [ ...]. Named
+arguments may appear as name=value pairs separated by whitespace. A colon or
+string literal introduces body content. Everything until the matching closing
+bracket is body, which may span multiple lines and paragraphs.</p>
+<pre><code class="language-picodoc">[#b : bold text]
+[#link to="https://example.com" : Click here]
+[#code language=python : """
+    def hello():
+        print("world")
+    """]</code></pre>
+<p>Bare text inside brackets that is not a name=value pair and not preceded by
+a colon or string literal is a syntax error.</p>
+<h3 id="named-arguments"><a href="#named-arguments">3.3. Named Arguments</a></h3>
+<p>Named arguments use the syntax <code>name=value</code> with no whitespace before
+the equals sign. Whitespace after the equals sign is permitted.</p>
+<p>Argument values can be:</p>
+<ul>
+<li><strong>Bareword</strong> (a simple word with no syntactic characters):
+    <code>language=python</code></li>
+<li><strong>String literal</strong> (interpreted or raw):
+    <code>to="https://example.com"</code></li>
+<li><strong>Macro reference</strong> (a zero-argument macro):
+    <code>to=#site-url</code></li>
+<li><strong>Bracketed call</strong> (a macro call in brackets):
+    <code>style=[#get-style]</code></li>
+</ul>
+<h3 id="the-body-argument"><a href="#the-body-argument">3.4. The Body Argument</a></h3>
+<p>Body content is introduced by a colon or by a string literal:</p>
+<p><strong>Colon, inline body</strong>: text follows the colon on the same line.</p>
+<pre><code class="language-picodoc">#-: Document Heading</code></pre>
+<p><strong>Colon, paragraph body</strong>: </p>
+<p>nothing follows the colon on the line. The next paragraph (contiguous non-blank
+lines) becomes the body.</p>
+<pre><code class="language-picodoc">#p:
+This paragraph spans
+multiple lines.</code></pre>
+<p><strong>String literal body</strong>: </p>
+<p>a string literal serves as body. A colon before the string is optional.</p>
+<pre><code class="language-picodoc">#p"A string literal paragraph."
+#**"bold text"
+[#code language=python """
+    def hello():
+        pass
+    """]</code></pre>
+<p><strong>Bracketed body</strong>: </p>
+<p>in bracketed calls, body extends to the closing bracket and may span multiple
+lines and paragraphs.</p>
+<pre><code class="language-picodoc">[#ul :
+  #*: First item
+  #*: Second item
+  #*: Third item
+]</code></pre>
+<p>If no colon and no string literal is present, the macro call has no body.</p>
+<h2 id="string-literals"><a href="#string-literals">4. String Literals</a></h2>
+<h3 id="interpreted-strings"><a href="#interpreted-strings">4.1. Interpreted Strings</a></h3>
+<p>Delimited by a single double quote on each end. Escape sequences are processed
+but macro calls are NOT automatically scanned for.</p>
+<pre><code class="language-picodoc">"A simple string."
+"Contains a tab:\there."
+"Contains a newline:\nSecond line."
+"A literal quote: \" inside."</code></pre>
+<p>To embed macro calls within an interpreted string, use <code>\[</code> to enter
+code mode. Code mode ends at the matching closing ]. Normal bracketed macro
+call syntax applies inside <code>\[...\]</code>.</p>
+<pre><code class="language-picodoc">"Hello, \[#name]!"
+"Dear \[#target], welcome to \[#place]."</code></pre>
+<h3 id="raw-strings"><a href="#raw-strings">4.2. Raw Strings</a></h3>
+<p>Delimited by three or more double quote characters. The closing delimiter must
+have exactly the same number of quotes as the opening. Contents are completely
+opaque (no escapes, no macro processing).</p>
+<pre><code class="language-picodoc">"""This is raw: \n is literal and #name is not expanded."""
+""""Contains """ three quotes inside.""""</code></pre>
+<h3 id="empty-string"><a href="#empty-string">4.3. Empty String</a></h3>
+<p>The empty string is always <code>""</code> (two double quotes). An empty raw
+string is not possible because the opening quotes run into the closing.</p>
+<h3 id="whitespace-stripping"><a href="#whitespace-stripping">4.4. Whitespace Stripping</a></h3>
+<p>Both interpreted and raw strings apply the same whitespace rules:</p>
+<ol>
+<li>If the remainder of the opening delimiter's line is blank (whitespace
+    only), that remainder is discarded.</li>
+<li>If the beginning of the closing delimiter's line is blank (whitespace
+    only), that whitespace is discarded.</li>
+<li>If the closing delimiter's leading whitespace appears identically on
+    ALL other lines of the string, that common prefix is stripped from every
+    line (indentation stripping).</li>
+</ol>
+<p>This allows indenting string content to match the surrounding markup without
+affecting the result:</p>
+<pre><code class="language-picodoc">    [#code language=python : </code></pre>
+<p>        def hello():
+            print("world")
+        ]</p>
+<p>The four spaces before <code>def</code> and <code>print</code> are stripped because
+they match the indentation of the closing delimiter.</p>
+<h3 id="adjacent-string-restriction"><a href="#adjacent-string-restriction">4.5. Adjacent String Restriction</a></h3>
+<p>After a string literal closes, the next character must not be a double quote.
+At least one non-quote character must separate consecutive string literals.
+This prevents a mismatched quote from silently cascading through the file.</p>
+<h2 id="builtin-macros"><a href="#builtin-macros">5. Builtin Macros</a></h2>
+<p>PicoDoc has 42 builtin macros in 8 categories, plus 11 aliases.</p>
+<h3 id="structural-macros"><a href="#structural-macros">5.1. Structural Macros</a></h3>
+<h4 id="h1"><a href="#h1">5.1.1. #h1</a></h4>
+<p>Alias: #-. Top-level heading. Renders as <code>&lt;h1&gt;</code> in the document body.
+Takes body, no parameters.</p>
+<pre><code class="language-picodoc">#h1: Main Heading
+#-: Alias form</code></pre>
+<h4 id="h2"><a href="#h2">5.1.2. #h2</a></h4>
+<p>Alias: #--. Section heading. Renders as <code>&lt;h2&gt;</code>. Takes body, no
+parameters.</p>
+<h4 id="h3"><a href="#h3">5.1.3. #h3</a></h4>
+<p>Alias: #---. Subsection heading. Renders as <code>&lt;h3&gt;</code>. Takes body, no
+parameters.</p>
+<h4 id="h4"><a href="#h4">5.1.4. #h4</a></h4>
+<p>Alias: #----. Lower-level heading. Renders as <code>&lt;h4&gt;</code>. Takes body, no
+parameters.</p>
+<h4 id="h5"><a href="#h5">5.1.5. #h5</a></h4>
+<p>Alias: #-----. Lower-level heading. Renders as <code>&lt;h5&gt;</code>. Takes body, no
+parameters.</p>
+<h4 id="h6"><a href="#h6">5.1.6. #h6</a></h4>
+<p>Alias: #------. Lower-level heading. Renders as <code>&lt;h6&gt;</code>. Takes body, no
+parameters.</p>
+<h4 id="p"><a href="#p">5.1.7. #p</a></h4>
+<p>Paragraph. Renders as <code>&lt;p&gt;</code>. Takes body, no parameters. Bare text
+paragraphs (not inside a macro call) are implicitly wrapped in #p.</p>
+<pre><code class="language-picodoc">#p: An explicit paragraph.
+
+This bare text is also a paragraph.</code></pre>
+<h4 id="hr"><a href="#hr">5.1.8. #hr</a></h4>
+<p>Horizontal rule. Renders as <code>&lt;hr&gt;</code>. No parameters, no body.</p>
+<h3 id="inline-macros"><a href="#inline-macros">5.2. Inline Macros</a></h3>
+<h4 id="b"><a href="#b">5.2.1. #b</a></h4>
+<p>Alias: #**. Bold text. Renders as <code>&lt;strong&gt;</code>. Takes body, no
+parameters.</p>
+<pre><code class="language-picodoc">This is #**"bold" text.
+This is [#b : also bold] text.</code></pre>
+<h4 id="i"><a href="#i">5.2.2. #i</a></h4>
+<p>Alias: #__. Italic text. Renders as <code>&lt;em&gt;</code>. Takes body, no
+parameters.</p>
+<pre><code class="language-picodoc">This is #__"italic" text.
+This is [#i : also italic] text.</code></pre>
+<h4 id="link"><a href="#link">5.2.3. #link</a></h4>
+<p>Alias: #&gt;. Hyperlink. Renders as <code>&lt;a&gt;</code>. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>to</td><td>Yes</td><td>Link target (URL, path, or fragment name)</td></tr>
+</tbody>
+</table>
+<p>Takes optional body (the link text). For external links, if no body is
+provided the <code>to</code> value is used as the link text.</p>
+<p>Fragment reference behavior: if <code>to</code> does not contain <code>://</code>
+and does not contain <code>/</code>, it is treated as a fragment reference and
+# is prepended (e.g. <code>to=section1</code> produces <code>href="#section1"</code>).</p>
+<p>For fragment references, two additional rules apply:</p>
+<ul>
+<li><strong>Auto-text</strong> : if no body is provided, the link text defaults
+    to the heading text of the target anchor. The text is always the plain
+    heading text without section numbers.</li>
+<li><strong>Validation</strong> : the target must match a heading anchor in the
+    document. A broken internal link is a render error.</li>
+</ul>
+<pre><code class="language-picodoc">[#link to="https://example.com" : Click here]
+[#&gt; to="https://example.com" : Alias form]
+[#link to=section1 : Jump to section]
+[#link to=section1]
+[#link to=page/about : About page]</code></pre>
+<h3 id="code-and-literal-macros"><a href="#code-and-literal-macros">5.3. Code and Literal Macros</a></h3>
+<h4 id="code"><a href="#code">5.3.1. #code</a></h4>
+<p>Block code. Renders as <code>&lt;pre&gt;&lt;code&gt;</code>. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>language</td><td>No</td><td>Programming language for syntax class</td></tr>
+</tbody>
+</table>
+<p>Takes body. Always renders as a block <code>&lt;pre&gt;&lt;code&gt;</code> element regardless
+of body type. For inline code, use #~ instead.</p>
+<pre><code class="language-picodoc">[#code language=python : """
+    def hello():
+        print("world")
+    """]</code></pre>
+<h4 id="heading"><a href="#heading">5.3.2. #~</a></h4>
+<p>Inline code. Renders as <code>&lt;code&gt;</code>. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>language</td><td>No</td><td>Programming language for syntax class</td></tr>
+</tbody>
+</table>
+<p>Takes body. Always renders as an inline <code>&lt;code&gt;</code> element regardless
+of body type. For block code, use #code instead.</p>
+<pre><code class="language-picodoc">Use the [#~ : print()] function to output text.
+The [#~ language=python : def] keyword starts a function.</code></pre>
+<h4 id="literal"><a href="#literal">5.3.3. #literal</a></h4>
+<p>Prevents re-expansion of its body. Any macro calls or escapes within the body
+are passed through as literal text. Useful for documenting PicoDoc syntax or
+for output from external filters. Takes body, no parameters.</p>
+<pre><code class="language-picodoc">#literal"""
+The #b macro makes text bold.
+Use [#link to="..." : text] for links.
+"""</code></pre>
+<h3 id="list-macros"><a href="#list-macros">5.4. List Macros</a></h3>
+<h4 id="ul"><a href="#ul">5.4.1. #ul</a></h4>
+<p>Unordered list. Renders as <code>&lt;ul&gt;</code>. Takes body, no parameters. Body must
+contain only #* (list item) elements.</p>
+<h4 id="ol"><a href="#ol">5.4.2. #ol</a></h4>
+<p>Ordered list. Renders as <code>&lt;ol&gt;</code>. Takes body, no parameters. Body must
+contain only #* (list item) elements.</p>
+<h4 id="heading-2"><a href="#heading-2">5.4.3. #*</a></h4>
+<p>Alias: #li. List item. Renders as <code>&lt;li&gt;</code>. Takes body, no parameters.
+Must appear inside #ul or #ol.</p>
+<pre><code class="language-picodoc">[#ul :
+  #*: First item
+  #*: Second with #**"bold"
+  [#* : Third with a sublist
+    [#ul :
+      #*: Nested A
+      #*: Nested B
+    ]
+  ]
+]
+
+[#ol :
+  #*: Step one
+  #*: Step two
+]</code></pre>
+<h3 id="table-macros"><a href="#table-macros">5.5. Table Macros</a></h3>
+<h4 id="table"><a href="#table">5.5.1. #table</a></h4>
+<p>Table container. Renders as <code>&lt;table&gt;</code>. Takes body, no parameters.
+Supports two forms:</p>
+<p><strong>Pipe-delimited form</strong>: the body is parsed as pipe-separated rows.</p>
+<p>The first row becomes headers (#th), subsequent rows become data (#td).</p>
+<pre><code class="language-picodoc">#table:
+  Name | Age | Status
+  Alice | 30 | Active
+  Bob | 25 | Inactive</code></pre>
+<p><strong>Explicit form</strong>: the body contains #tr, #th, and #td calls</p>
+<p>directly.</p>
+<pre><code class="language-picodoc">[#table :
+  [#tr : [#th: Name] [#th: Age]]
+  [#tr : [#td: Alice] [#td: 30]]
+]</code></pre>
+<h4 id="tr"><a href="#tr">5.5.2. #tr</a></h4>
+<p>Table row. Renders as <code>&lt;tr&gt;</code>. Takes body, no parameters.</p>
+<h4 id="td"><a href="#td">5.5.3. #td</a></h4>
+<p>Table data cell. Renders as <code>&lt;td&gt;</code>. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>span</td><td>No</td><td>Column span (colspan attribute)</td></tr>
+</tbody>
+</table>
+<p>Takes body.</p>
+<h4 id="th"><a href="#th">5.5.4. #th</a></h4>
+<p>Table header cell. Renders as <code>&lt;th&gt;</code>. Same parameters as #td. Takes
+body.</p>
+<pre><code class="language-picodoc">[#table :
+  [#tr : [#th: Name] [#th: Age]]
+  [#tr : [#td: Alice] [#td: 30]]
+  [#tr : [#td span=2 : Total: 1 person]]
+]</code></pre>
+<h3 id="wrapper-container-macros"><a href="#wrapper-container-macros">5.6. Wrapper / Container Macros</a></h3>
+<p>PicoDoc provides 9 wrapper macros for grouping content in HTML container
+elements. All wrapper macros accept optional <code>class</code> and <code>id</code>
+parameters and take a body.</p>
+<table>
+<thead>
+<tr><th>Macro</th><th>HTML element</th><th>Display</th></tr>
+</thead>
+<tbody>
+<tr><td>#div</td><td><code>&lt;div&gt;</code></td><td>Block</td></tr>
+<tr><td>#section</td><td><code>&lt;section&gt;</code></td><td>Block</td></tr>
+<tr><td>#nav</td><td><code>&lt;nav&gt;</code></td><td>Block</td></tr>
+<tr><td>#header</td><td><code>&lt;header&gt;</code></td><td>Block</td></tr>
+<tr><td>#footer</td><td><code>&lt;footer&gt;</code></td><td>Block</td></tr>
+<tr><td>#main</td><td><code>&lt;main&gt;</code></td><td>Block</td></tr>
+<tr><td>#article</td><td><code>&lt;article&gt;</code></td><td>Block</td></tr>
+<tr><td>#aside</td><td><code>&lt;aside&gt;</code></td><td>Block</td></tr>
+<tr><td>#span</td><td><code>&lt;span&gt;</code></td><td>Inline</td></tr>
+</tbody>
+</table>
+<p>Block wrappers render their body children on separate lines within the
+opening and closing tags. The #span macro is inline and renders its body
+without added newlines.</p>
+<pre><code class="language-picodoc">[#div class=container :
+  #-: Welcome
+  #p: This content is inside a div.
+]
+
+#p: Text with [#span class=highlight : highlighted words] inside.
+
+[#section class=sidebar id=nav :
+  [#nav :
+    [#ul :
+      #*: [#link to=page1 : Page 1]
+      #*: [#link to=page2 : Page 2]
+    ]
+  ]
+]</code></pre>
+<h3 id="document-macros-doc-namespace"><a href="#document-macros-doc-namespace">5.7. Document Macros (doc.* Namespace)</a></h3>
+<p>All document-level macros live under the <code>doc.*</code> namespace. They produce
+elements in the HTML <code>&lt;head&gt;</code> section, not in <code>&lt;body&gt;</code>.</p>
+<h4 id="doc-title"><a href="#doc-title">5.7.1. #doc.title</a></h4>
+<p>Sets the document <code>&lt;title&gt;</code> in the HTML <code>&lt;head&gt;</code> section. Does
+not produce any output in <code>&lt;body&gt;</code>. Takes body, no parameters.</p>
+<pre><code class="language-picodoc">#doc.title: My Document</code></pre>
+<h4 id="doc-lang"><a href="#doc-lang">5.7.2. #doc.lang</a></h4>
+<p>Sets the lang attribute on the HTML <code>&lt;html&gt;</code> element. Takes body (the
+language code), no parameters.</p>
+<pre><code class="language-picodoc">#doc.lang: en</code></pre>
+<h4 id="doc-meta"><a href="#doc-meta">5.7.3. #doc.meta</a></h4>
+<p>Adds a <code>&lt;meta&gt;</code> tag to the document head. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>name</td><td>No</td><td>Meta name attribute</td></tr>
+<tr><td>property</td><td>No</td><td>Meta property attribute (e.g. Open Graph)</td></tr>
+<tr><td>content</td><td>Yes</td><td>Meta content value</td></tr>
+</tbody>
+</table>
+<p>No body.</p>
+<pre><code class="language-picodoc">#doc.meta name=viewport content="width=device-width, initial-scale=1"
+#doc.meta property="og:title" content="PicoDoc Reference"</code></pre>
+<h4 id="doc-link"><a href="#doc-link">5.7.4. #doc.link</a></h4>
+<p>Adds a <code>&lt;link&gt;</code> tag to the document head. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>rel</td><td>Yes</td><td>Relationship (e.g. stylesheet)</td></tr>
+<tr><td>href</td><td>Yes</td><td>URL of the linked resource</td></tr>
+<tr><td>type</td><td>No</td><td>MIME type (e.g. image/png)</td></tr>
+<tr><td>sizes</td><td>No</td><td>Icon sizes (e.g. 32x32)</td></tr>
+</tbody>
+</table>
+<p>No body. The optional <code>type</code> and <code>sizes</code> attributes are only
+included in the output when non-empty.</p>
+<pre><code class="language-picodoc">#doc.link rel=stylesheet href="style.css"
+#doc.link rel=icon href="icon.png" type="image/png" sizes="32x32"</code></pre>
+<h4 id="doc-script"><a href="#doc-script">5.7.5. #doc.script</a></h4>
+<p>Adds a <code>&lt;script&gt;</code> element. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>src</td><td>No</td><td>URL of external script</td></tr>
+<tr><td>type</td><td>No</td><td>Script type (e.g. text/javascript)</td></tr>
+</tbody>
+</table>
+<p>Takes optional body (inline script content). Use either the src parameter or
+body, not both.</p>
+<pre><code class="language-picodoc">    #doc.script src="app.js"
+    #doc.script type=text/javascript src="app.js"
+    [#doc.script : </code></pre>
+<p>        console.log("Hello from PicoDoc");
+        ]</p>
+<h4 id="doc-author"><a href="#doc-author">5.7.6. #doc.author</a></h4>
+<p>Convenience macro. Renders as <code>&lt;meta name="author" content="..."&gt;</code>.
+Takes body (the author name), no parameters.</p>
+<pre><code class="language-picodoc">#doc.author: Jane Doe</code></pre>
+<h4 id="doc-version"><a href="#doc-version">5.7.7. #doc.version</a></h4>
+<p>Convenience macro. Renders as <code>&lt;meta name="version" content="..."&gt;</code>.
+Takes body (the version string), no parameters.</p>
+<pre><code class="language-picodoc">#doc.version: 2.0</code></pre>
+<h4 id="doc-datecreated"><a href="#doc-datecreated">5.7.8. #doc.datecreated</a></h4>
+<p>Convenience macro. Renders as <code>&lt;meta name="datecreated" content="..."&gt;</code>.
+Takes body (the date string), no parameters.</p>
+<pre><code class="language-picodoc">#doc.datecreated: 2025-01-01</code></pre>
+<h4 id="doc-datemodified"><a href="#doc-datemodified">5.7.9. #doc.datemodified</a></h4>
+<p>Convenience macro. Renders as <code>&lt;meta name="datemodified" content="..."&gt;</code>.
+Takes body (the date string), no parameters.</p>
+<pre><code class="language-picodoc">#doc.datemodified: 2025-06-15</code></pre>
+<h4 id="doc-body"><a href="#doc-body">5.7.10. #doc.body</a></h4>
+<p>Sets attributes on the <code>&lt;body&gt;</code> element. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>class</td><td>No</td><td>CSS class for the body element</td></tr>
+<tr><td>id</td><td>No</td><td>HTML id for the body element</td></tr>
+</tbody>
+</table>
+<p>No body. This is a document-level directive; it does not render as content.</p>
+<pre><code class="language-picodoc">#doc.body class=dark-theme id=app</code></pre>
+<p>This produces <code>&lt;body class="dark-theme" id="app"&gt;</code>.</p>
+<h4 id="doc-content"><a href="#doc-content">5.7.11. #doc.content</a></h4>
+<p>Wraps all "loose" top-level content (anything not inside an explicit wrapper
+macro) in a specified HTML container element. This is a document-level
+directive that affects the rendering of body items. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>type</td><td>Yes</td><td>Wrapper tag (must be one of the 9 wrapper tags)</td></tr>
+<tr><td>class</td><td>No</td><td>CSS class for the wrapper element</td></tr>
+<tr><td>id</td><td>No</td><td>HTML id for the wrapper element</td></tr>
+</tbody>
+</table>
+<p>No body. Only one #doc.content may appear per document. The <code>type</code>
+value must be one of: article, aside, div, footer, header, main, nav,
+section, span.</p>
+<p>Behavior: during rendering, top-level items whose resolved name is one of the
+9 wrapper tags remain outside the content wrapper. All other items (paragraphs,
+headings, lists, tables, etc.) are collected and wrapped in a single element
+of the specified type. The wrapper is placed at the position of the first
+loose item, preserving source order.</p>
+<pre><code class="language-picodoc">#doc.content type=main class=content
+
+[#header : #-: My Site]
+
+#p: This paragraph is loose and will be wrapped.
+
+#p: So will this one.
+
+[#footer : #p: Copyright 2025]</code></pre>
+<p>This produces header, then <code>&lt;main class="content"&gt;</code> containing the
+two paragraphs, then footer.</p>
+<h4 id="doc-toc"><a href="#doc-toc">5.7.12. #doc.toc</a></h4>
+<p>Generates a table of contents from document headings. Unlike other
+<code>doc.*</code> macros, #doc.toc renders in <code>&lt;body&gt;</code> (not
+<code>&lt;head&gt;</code>). Place it wherever the TOC should appear. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>level</td><td>No</td><td>Maximum heading depth to include (default 3)</td></tr>
+</tbody>
+</table>
+<p>No body. Renders as a <code>&lt;ul&gt;</code> tree with nested <code>&lt;a&gt;</code> links
+pointing to heading IDs. Wrap it in a container macro for placement
+control:</p>
+<pre><code class="language-picodoc">[#nav id=toc class=sidebar-toc :
+  #doc.toc level=3
+]</code></pre>
+<p>All headings (#h1 through #h6) automatically receive an <code>id</code>
+attribute based on their text content. The slug algorithm lowercases the text,
+replaces non-alphanumeric characters with hyphens, collapses consecutive
+hyphens, and strips leading/trailing hyphens. Duplicate heading texts produce
+unique IDs by appending <code>-2</code>, <code>-3</code>, etc. Heading IDs are always
+generated, even without #doc.toc, enabling deep linking.</p>
+<pre><code class="language-picodoc">#-: Introduction
+#--: Getting Started
+#--: Installation</code></pre>
+<p>The TOC for these headings produces:</p>
+<pre><code class="language-html">&lt;ul&gt;
+&lt;li&gt;&lt;a href="#introduction"&gt;Introduction&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="#getting-started"&gt;Getting Started&lt;/a&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="#installation"&gt;Installation&lt;/a&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+<p>Composed with a wrapper:</p>
+<pre><code class="language-picodoc">[#nav id=toc class=sidebar-toc :
+  #doc.toc level=3
+]</code></pre>
+<p>This produces:</p>
+<pre><code class="language-html">&lt;nav id="toc" class="sidebar-toc"&gt;
+&lt;ul&gt;
+...
+&lt;/ul&gt;
+&lt;/nav&gt;</code></pre>
+<h4 id="doc-heading-number"><a href="#doc-heading-number">5.7.13. #doc.heading.number</a></h4>
+<p>Document-level directive that prepends section numbers to headings. Numbers
+track section coordinates (1., 1.1., etc.) starting at h2. Heading level 1
+is always skipped from numbering (HTML recommends a single h1 as the document
+title). Deeper counters reset when a higher-level heading increments.
+Headings beyond the configured level render without numbers. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>level</td><td>No</td><td>Maximum heading depth to number (default 3)</td></tr>
+</tbody>
+</table>
+<p>No body.</p>
+<pre><code class="language-picodoc">#doc.heading.number level=3
+
+#-: Introduction
+#--: Background
+#---: Details
+#--: Motivation
+#-: Methods</code></pre>
+<p>This produces:</p>
+<pre><code class="language-html">&lt;h1 id="introduction"&gt;Introduction&lt;/h1&gt;
+&lt;h2 id="background"&gt;1. Background&lt;/h2&gt;
+&lt;h3 id="details"&gt;1.1. Details&lt;/h3&gt;
+&lt;h2 id="motivation"&gt;2. Motivation&lt;/h2&gt;
+&lt;h1 id="methods"&gt;Methods&lt;/h1&gt;</code></pre>
+<h4 id="doc-heading-anchor"><a href="#doc-heading-anchor">5.7.14. #doc.heading.anchor</a></h4>
+<p>Document-level directive that wraps heading content in an anchor link for
+deep-linking. The heading text is highlighted on hover (styled by CSS). Only
+headings up to the configured level receive anchors. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>level</td><td>No</td><td>Maximum heading depth to add anchors (default 3)</td></tr>
+</tbody>
+</table>
+<p>No body.</p>
+<pre><code class="language-picodoc">#doc.heading.anchor level=3
+#doc.heading.number
+
+#-: Introduction
+#--: Background</code></pre>
+<p>This produces:</p>
+<pre><code class="language-html">&lt;h1 id="introduction"&gt;&lt;a href="#introduction"&gt;Introduction&lt;/a&gt;&lt;/h1&gt;
+&lt;h2 id="background"&gt;&lt;a href="#background"&gt;1. Background&lt;/a&gt;&lt;/h2&gt;</code></pre>
+<p>The anchor wraps the full heading content, including the section number
+when #doc.heading.number is also active.</p>
+<h3 id="expansion-time-macros"><a href="#expansion-time-macros">5.8. Expansion-Time Macros</a></h3>
+<p>These macros are fully resolved during evaluation and do not appear in the
+final AST.</p>
+<p>The #comment macro (alias #//) removes its body from the output. Takes body,
+no parameters.</p>
+<p>The #set macro defines a user macro. See the User-Defined Macros section
+below.</p>
+<h4 id="ifeq"><a href="#ifeq">5.8.1. #ifeq</a></h4>
+<p>String equality test. Returns body if lhs equals rhs, empty string
+otherwise. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>lhs</td><td>Yes</td><td>Left-hand side value</td></tr>
+<tr><td>rhs</td><td>Yes</td><td>Right-hand side value</td></tr>
+</tbody>
+</table>
+<p>Takes body.</p>
+<h4 id="ifne"><a href="#ifne">5.8.2. #ifne</a></h4>
+<p>String inequality test. Returns body if lhs does not equal rhs, empty
+string otherwise. Same parameters as #ifeq. Takes body.</p>
+<h4 id="ifset"><a href="#ifset">5.8.3. #ifset</a></h4>
+<p>Tests whether a macro is defined. Returns body if the named macro exists,
+empty string otherwise. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>name</td><td>Yes</td><td>Macro name to test</td></tr>
+</tbody>
+</table>
+<p>Takes body.</p>
+<h4 id="include"><a href="#include">5.8.4. #include</a></h4>
+<p>Inserts the contents of another file. The filename is provided as the body of
+the macro call. The included file is parsed and expanded as if its contents
+appeared at the call site. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>literal</td><td>No</td><td>If "true", include as raw text without parsing</td></tr>
+</tbody>
+</table>
+<p>Takes body (the filename). Forward slashes are used as path separators on all
+platforms. Backslashes in the filename are normalized to forward slashes.</p>
+<pre><code class="language-picodoc">[#include : header.pdoc]
+#include: footer.pdoc
+[#include literal=true : code.js]</code></pre>
+<p>When <code>literal=true</code> is set, the file contents are included as raw text
+without parsing or macro expansion. This is useful for including source code
+or other non-PicoDoc content.</p>
+<h3 id="alias-table"><a href="#alias-table">5.9. Alias Table</a></h3>
+<p>All 11 aliases mapped to their canonical names:</p>
+<table>
+<thead>
+<tr><th>Alias</th><th>Canonical</th></tr>
+</thead>
+<tbody>
+<tr><td>#-</td><td>#h1</td></tr>
+<tr><td>#--</td><td>#h2</td></tr>
+<tr><td>#---</td><td>#h3</td></tr>
+<tr><td>#----</td><td>#h4</td></tr>
+<tr><td>#-----</td><td>#h5</td></tr>
+<tr><td>#------</td><td>#h6</td></tr>
+<tr><td>#//</td><td>#comment</td></tr>
+<tr><td>#&gt;</td><td>#link</td></tr>
+<tr><td>#**</td><td>#b</td></tr>
+<tr><td>#__</td><td>#i</td></tr>
+<tr><td>#li</td><td>#*</td></tr>
+</tbody>
+</table>
+<h2 id="user-defined-macros"><a href="#user-defined-macros">6. User-Defined Macros</a></h2>
+<h3 id="defining-macros-with-set"><a href="#defining-macros-with-set">6.1. Defining Macros with #set</a></h3>
+<p>The #set macro defines a new macro. It must always appear in bracketed form
+and at the top level (not inside macro bodies).</p>
+<pre><code class="language-picodoc">[#set name=version : 1.0]
+[#set name=greeting target=? body=? : Dear #target, #body Kind regards.]
+[#set name=box style=default body=? : [#p : (#style) #body]]</code></pre>
+<p>The name argument is required and specifies the macro name. Additional
+arguments become the macro's parameters.</p>
+<h3 id="parameters"><a href="#parameters">6.2. Parameters</a></h3>
+<p>Parameters can be:</p>
+<ul>
+<li><strong>Required</strong> (marked with ?, the caller must supply a value):
+    <code>target=?</code></li>
+<li><strong>With default</strong> (given a default value used when the caller omits
+    the argument): <code>style=default</code></li>
+</ul>
+<p>If the macro uses a body parameter, it must be declared as <code>body=?</code>
+(required) or <code>body=default</code> and must be the last parameter.</p>
+<p>Default values are evaluated during the resolution pass after all definitions
+are collected. A default value may be a macro call, which will be expanded
+during resolution.</p>
+<h3 id="calling-user-macros"><a href="#calling-user-macros">6.3. Calling User Macros</a></h3>
+<p>User macros are called exactly like builtin macros:</p>
+<pre><code class="language-picodoc">#version
+[#greeting target=World : thank you for your support.]
+[#box style=fancy : Content here.]</code></pre>
+<p>A macro with no arguments is essentially a variable:</p>
+<pre><code class="language-picodoc">[#set name=version : 1.0]
+The version is #version.</code></pre>
+<h3 id="out-of-order-definitions"><a href="#out-of-order-definitions">6.4. Out-of-Order Definitions</a></h3>
+<p>Macros may be used before they are defined. The compiler collects all #set
+definitions in a first pass before resolving and expanding:</p>
+<pre><code class="language-picodoc">#p: The project is #project-name.
+[#set name=project-name : PicoDoc]</code></pre>
+<h3 id="duplicate-detection"><a href="#duplicate-detection">6.5. Duplicate Detection</a></h3>
+<p>Duplicate macro definitions at the same scope are an immediate error.</p>
+<h3 id="scope-and-shadowing"><a href="#scope-and-shadowing">6.6. Scope and Shadowing</a></h3>
+<p>Macro invocation creates a new scope at the call site. Local argument names
+shadow any definitions outside the macro call with the same name.</p>
+<h3 id="overriding-builtin-macros"><a href="#overriding-builtin-macros">6.7. Overriding Builtin Macros</a></h3>
+<p>User-defined macros can shadow render-time builtins such as #p, #b, #code,
+#link, headings, lists, wrappers, and table cells. This lets you customise
+how standard elements are rendered without losing access to the original
+behaviour.</p>
+<p>Expansion-time builtins (#set, #ifeq, #ifne, #ifset, #include,
+#comment, #table) cannot be overridden. Attempting to define a macro with
+the same name as an expansion-time builtin is an error.</p>
+<pre><code class="language-picodoc">[#set name=p body=? : [#builtin.p : [#b : #body]]]
+#p: Every paragraph is now bold.</code></pre>
+<h4 id="the-builtin-prefix"><a href="#the-builtin-prefix">6.7.1. The #builtin.* Prefix</a></h4>
+<p>Inside a user macro definition (or anywhere else), use #builtin.name to call
+the original builtin, bypassing the user-defined override. Alias resolution
+applies after the prefix, so <code>#builtin.**</code> resolves to the builtin #b.</p>
+<pre><code class="language-picodoc">    [#set name=code body=? :
+      [#div class=code-wrapper :
+        [#builtin.code : #body]
+      ]
+    ]
+    [#code language=python : </code></pre>
+<p>        print("hello")
+        ]</p>
+<p>The #builtin.* namespace is reserved. Defining a macro whose name starts
+with <code>builtin.</code> is an error:</p>
+<pre><code class="language-picodoc">[#set name=builtin.foo : bar]
+[#//: Error: reserved namespace: cannot define 'builtin.foo']</code></pre>
+<p>If the name after <code>builtin.</code> does not match any builtin macro (after
+alias resolution), an evaluation error is raised.</p>
+<h3 id="macro-references-as-argument-values"><a href="#macro-references-as-argument-values">6.8. Macro References as Argument Values</a></h3>
+<p>A zero-argument macro (variable) can be passed as an argument value using
+the #identifier form:</p>
+<pre><code class="language-picodoc">[#set name=site-url : https://example.com]
+[#link to=#site-url : Our site]</code></pre>
+<h2 id="conditionals"><a href="#conditionals">7. Conditionals</a></h2>
+<p>PicoDoc has no expression language. Conditions are limited to simple
+comparisons via specialised macros.</p>
+<p>The #ifeq macro returns body if lhs equals rhs:</p>
+<pre><code class="language-picodoc">[#ifeq lhs=#mode rhs=draft : This document is a draft.]</code></pre>
+<p>The #ifne macro returns body if lhs does not equal rhs:</p>
+<pre><code class="language-picodoc">[#ifne lhs=#mode rhs=production : Not yet published.]</code></pre>
+<p>The #ifset macro returns body if the named macro is defined:</p>
+<pre><code class="language-picodoc">[#ifset name=env.author : Written by [#env.author].]</code></pre>
+<p>Conditionals can be nested:</p>
+<pre><code class="language-picodoc">[#ifeq lhs=#mode rhs=draft :
+  [#ifset name=env.author : Draft by [#env.author].]
+]</code></pre>
+<h2 id="includes"><a href="#includes">8. Includes</a></h2>
+<p>The #include macro inserts the contents of another file at the call site. The
+filename is provided as the body. The included file is parsed and expanded as
+if it appeared inline.</p>
+<pre><code class="language-picodoc">[#include : header.pdoc]
+
+#h2: Main Content
+
+#p: The body of the document.
+
+[#include : footer.pdoc]</code></pre>
+<p>A common pattern is to use includes for shared headers and footers across
+multiple documents.</p>
+<p>To include a file as raw text without parsing (e.g. source code), use the <code>literal</code> parameter:</p>
+<pre><code class="language-picodoc">[#include literal=true : code.js]</code></pre>
+<h2 id="global-environment-env"><a href="#global-environment-env">9. Global Environment (env.*)</a></h2>
+<p>The env.* namespace provides global values accessible to all macros, including
+external filters.</p>
+<h3 id="defining-environment-values"><a href="#defining-environment-values">9.1. Defining Environment Values</a></h3>
+<p>Values can be set from three sources (listed in ascending precedence):</p>
+<ol>
+<li><strong>Config file</strong> : under the [env] section in
+    <code>picodoc.toml</code></li>
+<li><strong>CLI arguments</strong> : using <code>-e name=value</code> (repeatable)</li>
+<li><strong>Document-level #set</strong> : for example
+    <code>[#set name=env.mode : draft]</code></li>
+</ol>
+<p>Document-level definitions have the highest precedence. The document author
+has final say.</p>
+<h3 id="accessing-environment-values"><a href="#accessing-environment-values">9.2. Accessing Environment Values</a></h3>
+<p>Environment values are accessed as zero-argument macros:</p>
+<pre><code class="language-picodoc">#env.mode
+[#env.author]</code></pre>
+<p>They are inherited through nested macro calls. A macro body can reference
+#env.mode and it resolves from the global environment.</p>
+<h3 id="immutability"><a href="#immutability">9.3. Immutability</a></h3>
+<p>Environment values are global and immutable once set. They cannot be
+overridden locally within macro bodies. This prevents confusing
+action-at-a-distance where a macro silently changes global state.</p>
+<h2 id="external-filters"><a href="#external-filters">10. External Filters</a></h2>
+<p>External filters allow users to define macros as command-line programs in any
+language.</p>
+<h3 id="protocol"><a href="#protocol">10.1. Protocol</a></h3>
+<p>The filter receives a JSON object on stdin containing all named arguments
+(including body if present) and all env.* values:</p>
+<pre><code class="language-json">{"arg1": "value1", "body": "the body text", "env": {"mode": "draft"}}</code></pre>
+<p>The filter returns PicoDoc markup on stdout. The multi-pass evaluator expands
+any macro calls in the output on subsequent passes.</p>
+<p>A filter that wants to return final HTML (preventing re-expansion) wraps its
+output in #literal.</p>
+<h3 id="discovery"><a href="#discovery">10.2. Discovery</a></h3>
+<p>The converter searches for filter executables in this order:</p>
+<ol>
+<li>A filters/ directory alongside the document</li>
+<li>Directories specified via <code>--filter-path</code> or config</li>
+<li>The system $PATH</li>
+</ol>
+<p>The executable name maps to the macro name.</p>
+<h3 id="timeout"><a href="#timeout">10.3. Timeout</a></h3>
+<p>A configurable timeout (default 5 seconds, set via <code>--filter-timeout</code>
+or config) kills long-running filters. Non-zero exit codes are treated as
+expansion errors with the filter's stderr included in the error message.</p>
+<h2 id="configuration-file"><a href="#configuration-file">11. Configuration File</a></h2>
+<p>Place a <code>picodoc.toml</code> next to your input file (or point to one with
+the <code>--config</code> flag). CLI flags override config values.</p>
+<pre><code class="language-toml">[env]
+title = "My Document"
+author = "Jane Doe"
+
+[css]
+files = ["style.css", "code.css"]
+
+[js]
+files = ["main.js"]
+
+[meta]
+viewport = "width=device-width, initial-scale=1"
+
+[filters]
+paths = ["./filters"]
+timeout = 10.0</code></pre>
+<h2 id="command-line-interface"><a href="#command-line-interface">12. Command-Line Interface</a></h2>
+<p>Usage:</p>
+<pre><code>uv run picodoc [OPTIONS] INPUT</code></pre>
+<h3 id="options"><a href="#options">12.1. Options</a></h3>
+<table>
+<thead>
+<tr><th>Flag</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>-o FILE</code></td><td>Write output to FILE instead of stdout</td></tr>
+<tr><td><code>-e NAME=VALUE</code></td><td>Set an environment variable (repeatable)</td></tr>
+<tr><td><code>--css FILE</code></td><td>Inject a CSS file into the head (repeatable)</td></tr>
+<tr><td><code>--js FILE</code></td><td>Inject a JS file into the head (repeatable)</td></tr>
+<tr><td><code>--meta NAME=VALUE</code></td><td>Add a meta tag (repeatable)</td></tr>
+<tr><td><code>--filter-path DIR</code></td><td>Extra filter search directory (repeatable)</td></tr>
+<tr><td><code>--filter-timeout SECS</code></td><td>Filter execution timeout (default 5.0)</td></tr>
+<tr><td><code>--config FILE</code></td><td>Config file path (auto-discovers picodoc.toml)</td></tr>
+<tr><td><code>--watch</code></td><td>Watch for changes and recompile on save</td></tr>
+<tr><td><code>--debug</code></td><td>Dump the AST to stderr</td></tr>
+</tbody>
+</table>
+<h3 id="exit-codes"><a href="#exit-codes">12.2. Exit Codes</a></h3>
+<table>
+<thead>
+<tr><th>Code</th><th>Meaning</th></tr>
+</thead>
+<tbody>
+<tr><td>0</td><td>Success</td></tr>
+<tr><td>1</td><td>Syntax error (lex or parse failure)</td></tr>
+<tr><td>2</td><td>Evaluation error or invalid arguments</td></tr>
+</tbody>
+</table>
+<h2 id="expansion-model"><a href="#expansion-model">13. Expansion Model</a></h2>
+<p>PicoDoc processes a document through a pipeline of stages:</p>
+<ol>
+<li><strong>Lexing</strong> : source text is tokenized into a stream of tokens.</li>
+<li><strong>Parsing</strong> : tokens are assembled into an AST (abstract syntax
+    tree). The parser is definition-independent; it does not need to know which
+    macros are defined.</li>
+<li><strong>Collection</strong> : all #set definitions are gathered from the AST
+    without evaluating them.</li>
+<li><strong>Resolution</strong> : definitions are resolved and default values are
+    evaluated, which may themselves require expansion passes.</li>
+<li><strong>Expansion</strong> : the evaluator walks the AST expanding macro nodes,
+    marks fully-expanded nodes as complete, and re-walks until convergence.
+    Expansion-time builtins (#set, #ifeq, #include, #comment, #table pipe
+    form) are resolved and removed. Only text nodes and render-time builtins
+    remain.</li>
+<li><strong>Rendering</strong> : the renderer maps the expanded AST to HTML,
+    validates nesting, handles HTML escaping, and wraps the output in a
+    proper document structure (doctype, head, body).</li>
+</ol>
+<h3 id="multi-pass-expansion"><a href="#multi-pass-expansion">13.1. Multi-Pass Expansion</a></h3>
+<p>Expansion is convergence-based. The evaluator keeps walking the AST until no
+unexpanded macro calls remain. This allows macros to produce output containing
+other macro calls that are expanded on subsequent passes (e.g. #table pipe
+form emits #tr/#th/#td calls).</p>
+<h3 id="call-stack-depth"><a href="#call-stack-depth">13.2. Call Stack Depth</a></h3>
+<p>A global maximum call stack depth (configurable, default 64) catches infinite
+or excessive recursion. Exceeding this limit is an evaluation error.</p>
+<h3 id="preventing-re-expansion"><a href="#preventing-re-expansion">13.3. Preventing Re-Expansion</a></h3>
+<p>The #literal macro prevents its body from being re-expanded. This is useful
+for:</p>
+<ul>
+<li>Documenting PicoDoc syntax within PicoDoc documents</li>
+<li>External filters that return final HTML</li>
+<li>Any situation where text containing # or [ should be treated as
+    literal output</li>
+</ul>
+</main>
+<footer>
+  <p>Version 0.1 2026-02-27</p>
+
+  <p>Last updated:</p>
+</footer>
+</body>
+</html>
