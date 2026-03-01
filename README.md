@@ -3,6 +3,15 @@
 C port of the PicoDoc document compiler. Compiles `.pdoc` markup to HTML,
 ported from the Python reference implementation.
 
+## Documentation
+
+The documentation is written in PicoDoc.
+
+- [PicoDoc Reference (Rendered)](https://technobok.github.io/picodoc-c/reference.html).
+- [PicoDoc Reference (Source)](https://technobok.github.io/picodoc-c/reference.pdoc).
+- [PicoDoc Tutorial (Rendered)](https://technobok.github.io/picodoc-c/tutorial.html).
+- [PicoDoc Tutorial (Source)](https://technobok.github.io/picodoc-c/tutorial.pdoc).
+
 ## Status
 
 All components implemented: lexer, parser, AST, builtins, evaluator,
