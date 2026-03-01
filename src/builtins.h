@@ -15,6 +15,7 @@ typedef struct {
     const ParamDecl *params;
     int param_count;
     bool has_body;
+    bool expansion_time;   /* true = cannot be shadowed by user macros */
 } BuiltinDef;
 
 /* Resolve heading/formatting aliases: "-" -> "h1", "**" -> "b", etc.

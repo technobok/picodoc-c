@@ -58,75 +58,75 @@ static const ParamDecl params_include[]  = {{"literal", false}};
 
 /* --- Builtin definitions table --- */
 
-#define B(n, p, body) {n, p, (int)(sizeof(p)/sizeof(p[0])), body}
-#define B0(n, body)   {n, NULL, 0, body}
+#define B(n, p, body, exp)  {n, p, (int)(sizeof(p)/sizeof(p[0])), body, exp}
+#define B0(n, body, exp)    {n, NULL, 0, body, exp}
 
 static const BuiltinDef BUILTINS[] = {
     /* Structural */
-    B0("h1", true),
-    B0("h2", true),
-    B0("h3", true),
-    B0("h4", true),
-    B0("h5", true),
-    B0("h6", true),
-    B0("p",  true),
-    B0("hr", false),
+    B0("h1", true, false),
+    B0("h2", true, false),
+    B0("h3", true, false),
+    B0("h4", true, false),
+    B0("h5", true, false),
+    B0("h6", true, false),
+    B0("p",  true, false),
+    B0("hr", false, false),
 
     /* Inline */
-    B0("b", true),
-    B0("i", true),
-    B("link", params_link, true),
+    B0("b", true, false),
+    B0("i", true, false),
+    B("link", params_link, true, false),
 
     /* Code / literal */
-    B("code", params_code, true),
-    B("~",    params_code, true),
-    B0("literal", true),
+    B("code", params_code, true, false),
+    B("~",    params_code, true, false),
+    B0("literal", true, false),
 
     /* Lists */
-    B0("ul", true),
-    B0("ol", true),
-    B0("*",  true),
+    B0("ul", true, false),
+    B0("ol", true, false),
+    B0("*",  true, false),
 
     /* Tables */
-    B0("table", true),
-    B0("tr",    true),
-    B("td", params_td, true),
-    B("th", params_td, true),
+    B0("table", true, true),
+    B0("tr",    true, false),
+    B("td", params_td, true, false),
+    B("th", params_td, true, false),
 
     /* Wrapper / container */
-    B("div",     params_wrapper, true),
-    B("section", params_wrapper, true),
-    B("span",    params_wrapper, true),
-    B("nav",     params_wrapper, true),
-    B("header",  params_wrapper, true),
-    B("footer",  params_wrapper, true),
-    B("main",    params_wrapper, true),
-    B("article", params_wrapper, true),
-    B("aside",   params_wrapper, true),
+    B("div",     params_wrapper, true, false),
+    B("section", params_wrapper, true, false),
+    B("span",    params_wrapper, true, false),
+    B("nav",     params_wrapper, true, false),
+    B("header",  params_wrapper, true, false),
+    B("footer",  params_wrapper, true, false),
+    B("main",    params_wrapper, true, false),
+    B("article", params_wrapper, true, false),
+    B("aside",   params_wrapper, true, false),
 
     /* Document */
-    B("doc.meta",   params_doc_meta,   false),
-    B("doc.link",   params_doc_link,   false),
-    B("doc.script", params_doc_script, true),
-    B0("doc.title",         true),
-    B0("doc.lang",          true),
-    B0("doc.author",        true),
-    B0("doc.version",       true),
-    B0("doc.datecreated",   true),
-    B0("doc.datemodified",  true),
-    B("doc.content", params_doc_content, false),
-    B("doc.body",    params_doc_body,    false),
-    B("doc.toc",     params_doc_toc,     false),
-    B("doc.heading.number", params_doc_toc, false),
-    B("doc.heading.anchor", params_doc_toc, false),
+    B("doc.meta",   params_doc_meta,   false, false),
+    B("doc.link",   params_doc_link,   false, false),
+    B("doc.script", params_doc_script, true, false),
+    B0("doc.title",         true, false),
+    B0("doc.lang",          true, false),
+    B0("doc.author",        true, false),
+    B0("doc.version",       true, false),
+    B0("doc.datecreated",   true, false),
+    B0("doc.datemodified",  true, false),
+    B("doc.content", params_doc_content, false, false),
+    B("doc.body",    params_doc_body,    false, false),
+    B("doc.toc",     params_doc_toc,     false, false),
+    B("doc.heading.number", params_doc_toc, false, false),
+    B("doc.heading.anchor", params_doc_toc, false, false),
 
     /* Expansion-time */
-    B0("comment", true),
-    B("set",     params_set,     true),
-    B("ifeq",    params_ifeq,   true),
-    B("ifne",    params_ifeq,   true),
-    B("ifset",   params_ifset,  true),
-    B("include", params_include, true),
+    B0("comment", true, true),
+    B("set",     params_set,     true, true),
+    B("ifeq",    params_ifeq,   true, true),
+    B("ifne",    params_ifeq,   true, true),
+    B("ifset",   params_ifset,  true, true),
+    B("include", params_include, true, true),
 };
 
 #undef B

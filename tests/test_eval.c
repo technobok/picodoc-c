@@ -171,6 +171,78 @@ static const char *eval_ast_env_err(PdNode *doc,
     return _last_err.message;
 }
 
+/* Parse + evaluate, expect error. Returns error message. */
+static const char *eval_err(const char *input) {
+    pd_error_free(&_last_err);
+    pd_error_init(&_last_err);
+    TokenArray tokens;
+
+    int rc = pd_tokenize(input, "test.pdoc", &tokens, &_last_err);
+    if (rc < 0) {
+        char *fmt = pd_format_error(&_last_err);
+        TEST_FAIL_MESSAGE(fmt ? fmt : _last_err.message);
+    }
+
+    PdNode *doc = NULL;
+    rc = pd_parse(&tokens, input, "test.pdoc", &doc, &_last_err);
+    token_array_free(&tokens);
+    if (rc < 0) {
+        char *fmt = pd_format_error(&_last_err);
+        TEST_FAIL_MESSAGE(fmt ? fmt : _last_err.message);
+    }
+
+    pd_error_free(&_last_err);
+    pd_error_init(&_last_err);
+    PdNode *result = NULL;
+    rc = pd_evaluate(doc, "test.pdoc", input, NULL, NULL, 0, NULL,
+                     &result, &_last_err);
+    TEST_ASSERT_EQUAL_INT(-1, rc);
+    TEST_ASSERT_NULL(result);
+    pd_node_free(doc);
+    return _last_err.message;
+}
+
+/* Parse + evaluate + render, fail on error. Caller frees returned HTML. */
+static char *render_ok(const char *input) {
+    PdError err;
+    pd_error_init(&err);
+    TokenArray tokens;
+
+    int rc = pd_tokenize(input, "test.pdoc", &tokens, &err);
+    if (rc < 0) {
+        char *fmt = pd_format_error(&err);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+
+    PdNode *doc = NULL;
+    rc = pd_parse(&tokens, input, "test.pdoc", &doc, &err);
+    token_array_free(&tokens);
+    if (rc < 0) {
+        char *fmt = pd_format_error(&err);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+
+    PdNode *expanded = NULL;
+    rc = pd_evaluate(doc, "test.pdoc", input, NULL, NULL, 0, NULL,
+                     &expanded, &err);
+    if (rc < 0) {
+        char *fmt = pd_format_error(&err);
+        pd_node_free(doc);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+    pd_node_free(doc);
+
+    char *html = NULL;
+    rc = pd_render(expanded, input, "test.pdoc", &html, &err);
+    if (rc < 0) {
+        char *fmt = pd_format_error(&err);
+        pd_node_free(expanded);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+    pd_node_free(expanded);
+    return html;
+}
+
 /* Extract concatenated text from a MacroCall's Body children. */
 static void body_text(PdNode *node, char *buf, int bufsize) {
     buf[0] = '\0';
@@ -1775,6 +1847,155 @@ static void test_eval_include_literal_renders(void) {
     free(dir);
 }
 
+/* --- Builtin override tests --- */
+
+void test_eval_override_render_builtin(void) {
+    /* #set name=p shadows the builtin #p; #builtin.p delegates to original */
+    PdNode *result = eval_ok(
+        "[#set name=p body=?: [#builtin.p: [#b: [#body]]]]\n"
+        "#p: hello\n"
+    );
+    /* Result should have a #p whose body contains a #b */
+    TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
+    PdNode *p = result->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, p->type);
+    TEST_ASSERT_EQUAL_STRING("p", p->as.macro_call.name);
+    PdNode *pbody = p->as.macro_call.body;
+    TEST_ASSERT_NOT_NULL(pbody);
+    /* The body should contain a #b macro */
+    bool found_b = false;
+    for (int i = 0; i < pbody->as.body.count; i++) {
+        if (pbody->as.body.children[i]->type == NODE_MACRO_CALL &&
+            strcmp(pbody->as.body.children[i]->as.macro_call.name, "b") == 0) {
+            found_b = true;
+        }
+    }
+    TEST_ASSERT_TRUE_MESSAGE(found_b, "expected #b inside overridden #p");
+    pd_node_free(result);
+}
+
+void test_eval_override_code_builtin(void) {
+    /* Shadow #code with a wrapper that uses #builtin.code */
+    PdNode *result = eval_ok(
+        "[#set name=code body=?: [#div class=cb: [#builtin.code: [#body]]]]\n"
+        "[#code: x=1]\n"
+    );
+    TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
+    PdNode *div = result->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, div->type);
+    TEST_ASSERT_EQUAL_STRING("div", div->as.macro_call.name);
+    /* Inside the div there should be a #code macro */
+    PdNode *dbody = div->as.macro_call.body;
+    TEST_ASSERT_NOT_NULL(dbody);
+    bool found_code = false;
+    for (int i = 0; i < dbody->as.body.count; i++) {
+        if (dbody->as.body.children[i]->type == NODE_MACRO_CALL &&
+            strcmp(dbody->as.body.children[i]->as.macro_call.name, "code") == 0) {
+            found_code = true;
+        }
+    }
+    TEST_ASSERT_TRUE_MESSAGE(found_code,
+                             "expected #code inside wrapper div");
+    pd_node_free(result);
+}
+
+void test_eval_builtin_prefix_direct(void) {
+    /* #builtin.p works even without any #set override */
+    PdNode *result = eval_ok("[#builtin.p: hello]\n");
+    TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
+    PdNode *p = result->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, p->type);
+    TEST_ASSERT_EQUAL_STRING("p", p->as.macro_call.name);
+    pd_node_free(result);
+}
+
+void test_eval_builtin_prefix_alias(void) {
+    /* #builtin.** resolves alias ** -> b */
+    PdNode *result = eval_ok("[#builtin.**: bold]\n");
+    TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
+    PdNode *b = result->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, b->type);
+    TEST_ASSERT_EQUAL_STRING("b", b->as.macro_call.name);
+    pd_node_free(result);
+}
+
+void test_eval_builtin_prefix_unknown(void) {
+    const char *msg = eval_err("[#builtin.nonexistent: x]\n");
+    TEST_ASSERT_NOT_NULL(strstr(msg, "unknown builtin"));
+}
+
+void test_eval_reserved_namespace(void) {
+    const char *msg = eval_err("[#set name=builtin.foo : bar]\n");
+    TEST_ASSERT_NOT_NULL(strstr(msg, "reserved namespace"));
+}
+
+void test_eval_expansion_builtin_not_overridable(void) {
+    /* #set name=set should be collected as a definition but #set still
+       works as an expansion-time builtin */
+    PdNode *result = eval_ok(
+        "[#set name=set : NOPE]\n"
+        "[#set name=x : hello]\n"
+        "#p: #x\n"
+    );
+    TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
+    PdNode *p = result->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, p->type);
+    char buf[256];
+    body_text(p, buf, sizeof(buf));
+    TEST_ASSERT_EQUAL_STRING("hello", buf);
+    pd_node_free(result);
+}
+
+void test_eval_ifeq_not_overridable(void) {
+    /* #ifeq is expansion-time: even if shadowed, it still works */
+    PdNode *result = eval_ok(
+        "[#set name=ifeq : NOPE]\n"
+        "[#ifeq lhs=a rhs=a : [#p: match]]\n"
+    );
+    /* The ifeq should have expanded, producing a #p with "match" */
+    bool found_match = false;
+    for (int i = 0; i < result->as.document.count; i++) {
+        PdNode *child = result->as.document.children[i];
+        if (child->type == NODE_MACRO_CALL &&
+            strcmp(child->as.macro_call.name, "p") == 0) {
+            char buf[256];
+            body_text(child, buf, sizeof(buf));
+            if (strstr(buf, "match")) found_match = true;
+        }
+    }
+    TEST_ASSERT_TRUE_MESSAGE(found_match,
+        "expected #ifeq to still work as expansion-time builtin");
+    pd_node_free(result);
+}
+
+void test_eval_override_trailing_dot(void) {
+    /* Trailing dot works with overridden macro */
+    PdNode *result = eval_ok(
+        "[#set name=version : 2.0]\n"
+        "#p: v#version.\n"
+    );
+    TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
+    PdNode *p = result->as.document.children[0];
+    char buf[256];
+    body_text(p, buf, sizeof(buf));
+    /* Should contain "v2.0." — the value plus trailing dot */
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(buf, "2.0."), buf);
+    pd_node_free(result);
+}
+
+void test_eval_override_with_render(void) {
+    /* End-to-end: override #code, render to HTML */
+    char *html = render_ok(
+        "[#set name=code body=?: [#div class=cb: [#builtin.code: [#body]]]]\n"
+        "[#code: print(42)]\n"
+    );
+    /* Should have a div.cb wrapping a <pre><code> */
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(html, "<div class=\"cb\">"), html);
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(html, "<pre><code>"), html);
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(html, "print(42)"), html);
+    free(html);
+}
+
 /* --- Test runner --- */
 
 void run_test_eval(void) {
@@ -1879,4 +2100,16 @@ void run_test_eval(void) {
     RUN_TEST(test_eval_include_literal);
     RUN_TEST(test_eval_include_literal_top_level);
     RUN_TEST(test_eval_include_literal_renders);
+
+    /* Builtin overrides */
+    RUN_TEST(test_eval_override_render_builtin);
+    RUN_TEST(test_eval_override_code_builtin);
+    RUN_TEST(test_eval_builtin_prefix_direct);
+    RUN_TEST(test_eval_builtin_prefix_alias);
+    RUN_TEST(test_eval_builtin_prefix_unknown);
+    RUN_TEST(test_eval_reserved_namespace);
+    RUN_TEST(test_eval_expansion_builtin_not_overridable);
+    RUN_TEST(test_eval_ifeq_not_overridable);
+    RUN_TEST(test_eval_override_trailing_dot);
+    RUN_TEST(test_eval_override_with_render);
 }

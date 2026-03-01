@@ -1452,8 +1452,24 @@ static int expand_filter(PdNode *node, const char *name,
 static int expand_macro(PdNode *node, EvalContext *ctx, NodeArray *out) {
     const char *name = resolve_alias(node->as.macro_call.name);
 
-    int rc = validate_builtin_args(node, name, ctx);
-    if (rc < 0) return rc;
+    /* Handle #builtin. prefix — force builtin dispatch */
+    bool force_builtin = false;
+    if (strncmp(name, "builtin.", 8) == 0) {
+        name = resolve_alias(name + 8);
+        const BuiltinDef *bdef = find_builtin(name);
+        if (!bdef) {
+            return eval_errf(ctx, node->span,
+                "unknown builtin '%s'", name);
+        }
+        force_builtin = true;
+    }
+
+    /* Conditionalize builtin arg validation: skip when a user macro shadows */
+    bool user_has_def = (shgeti(ctx->definitions, name) >= 0);
+    if (force_builtin || !user_has_def) {
+        int rc = validate_builtin_args(node, name, ctx);
+        if (rc < 0) return rc;
+    }
 
     /* Environment variable reference */
     if (strncmp(name, "env.", 4) == 0) {
@@ -1489,12 +1505,14 @@ static int expand_macro(PdNode *node, EvalContext *ctx, NodeArray *out) {
     if (strcmp(name, "table") == 0)
         return expand_table(node, ctx, out);
 
-    /* User macro expansion */
-    {
+    /* User macro expansion — allow shadowing render-time builtins */
+    if (!force_builtin) {
         ptrdiff_t didx = shgeti(ctx->definitions, name);
-        const BuiltinDef *bdef = find_builtin(name);
-        if (didx >= 0 && bdef == NULL) {
-            return expand_user_macro(node, name, ctx, out);
+        if (didx >= 0) {
+            const BuiltinDef *bdef = find_builtin(name);
+            if (!bdef || !bdef->expansion_time) {
+                return expand_user_macro(node, name, ctx, out);
+            }
         }
     }
 
@@ -1514,18 +1532,21 @@ static int expand_macro(PdNode *node, EvalContext *ctx, NodeArray *out) {
         char base[256];
         memcpy(base, name, (size_t)(name_len - 1));
         base[name_len - 1] = '\0';
-        if (shgeti(ctx->definitions, base) >= 0 && find_builtin(base) == NULL) {
-            rc = expand_user_macro(node, base, ctx, out);
-            if (rc < 0) return rc;
-            node_array_push(out, pd_node_text(".", 1, node->span));
-            return 0;
+        if (shgeti(ctx->definitions, base) >= 0) {
+            const BuiltinDef *bbase = find_builtin(base);
+            if (!bbase || !bbase->expansion_time) {
+                int rc = expand_user_macro(node, base, ctx, out);
+                if (rc < 0) return rc;
+                node_array_push(out, pd_node_text(".", 1, node->span));
+                return 0;
+            }
         }
     }
 
     /* Render-time macro: resolve args and recurse into body */
     NodeArray new_args;
     node_array_init(&new_args);
-    rc = resolve_macro_args(node->as.macro_call.args,
+    int rc = resolve_macro_args(node->as.macro_call.args,
                             node->as.macro_call.arg_count, ctx, &new_args);
     if (rc < 0) {
         node_array_free_deep(&new_args);
@@ -1539,8 +1560,10 @@ static int expand_macro(PdNode *node, EvalContext *ctx, NodeArray *out) {
         return rc;
     }
 
-    PdNode *result = pd_node_macro_call(node->as.macro_call.name,
-                                        node->as.macro_call.name_len,
+    const char *out_name = force_builtin ? name : node->as.macro_call.name;
+    int out_name_len = force_builtin ? (int)strlen(name)
+                                     : node->as.macro_call.name_len;
+    PdNode *result = pd_node_macro_call(out_name, out_name_len,
                                         new_args.items, new_args.count,
                                         new_body,
                                         node->as.macro_call.bracketed,
@@ -1564,6 +1587,11 @@ static int collect_definitions(PdNode *doc, EvalContext *ctx) {
 
         char def_name[256];
         resolve_value(name_val, ctx, def_name, sizeof(def_name));
+
+        if (strncmp(def_name, "builtin.", 8) == 0) {
+            return eval_errf(ctx, child->span,
+                             "reserved namespace: cannot define '%s'", def_name);
+        }
 
         if (shgeti(ctx->definitions, def_name) >= 0) {
             return eval_errf(ctx, child->span,
