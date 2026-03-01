@@ -19,6 +19,9 @@ LIB_OBJ  = $(filter-out src/cli.o,$(OBJ))
 picodoc: $(OBJ) src/cli.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
+libpicodoc.so: $(SRC) src/ffi.c
+	$(CC) $(CFLAGS) -fPIC -shared -o $@ $^ -lm
+
 picodoc-lsp: $(LIB_OBJ) src/lsp.o src/lsp_main.o
 	$(CC) $(LDFLAGS) -o $@ $^ -lm
 
@@ -36,7 +39,7 @@ docs: picodoc
 	$(MAKE) -C docs
 
 clean:
-	rm -f $(OBJ) $(TEST_OBJ) src/cli.o src/lsp.o src/lsp_main.o picodoc picodoc-lsp run_tests
+	rm -f $(OBJ) $(TEST_OBJ) src/cli.o src/lsp.o src/lsp_main.o picodoc picodoc-lsp run_tests libpicodoc.so
 	$(MAKE) -C docs clean
 
 .PHONY: test docs clean

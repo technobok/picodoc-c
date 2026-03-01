@@ -2,3 +2,6 @@
 run_tests
 picodoc
 picodoc-lsp
+libpicodoc.so
+__pycache__/
+*.egg-info/
