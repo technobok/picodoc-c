@@ -4,19 +4,36 @@
 #comment: A progressive guide from minimal document to productive use.
 
 #doc.title: Getting Started with PicoDoc
+#doc.content type=main id=content
+#doc.heading.number level=4
+#doc.heading.anchor level=4
+#doc.link rel=stylesheet href=style/picodoc.css 
+#doc.script src=style/tocbot.min.js
+#doc.script src=style/init.js
 #doc.script src=style/prism.min.js
 #doc.script src=style/prism-picodoc.js
 
-#h2: What is PicoDoc?
+#doc.body class=toc-sidebar
+#nav id=nav: [#include literal=true: style/nav.html]
+
+#header:
+  #-: PicoDoc Tutorial
+
+#nav id=toc class=toc-sidebar:
+  #div id=tocfile: Table of Contents
+  #doc.toc
+
+#--: What is PicoDoc?
 
 PicoDoc is a macro-based markup language that compiles to HTML. Everything in
 PicoDoc (headings, bold text, links, user-defined templates) is a macro
 call. This single abstraction keeps the language regular and predictable: once
 you learn the macro syntax, you know the entire language.
 
-#h2: Installation
+#--: Installation - Python version
 
-PicoDoc requires [#b : Python 3.14+] and [#link to="https://docs.astral.sh/uv/" : uv].
+The PicoDoc Python project requires [#b : Python 3.14+] and 
+[#link to="https://docs.astral.sh/uv/" : uv].
 
 #code: """
     git clone <repo-url> picodoc
@@ -30,7 +47,17 @@ Verify the installation:
     uv run picodoc --help
     """
 
-#h2: Your First Document
+#--: Installation - C version
+
+The C version requires a C compiler:
+
+#code: """
+    git clone <repo-url> picodoc-c
+    cd picodoc
+    make
+    """
+
+#--: Your First Document
 
 Create a file called [#~"hello.pdoc"]:
 
@@ -41,10 +68,16 @@ Create a file called [#~"hello.pdoc"]:
     This is my first document.
     """
 
-Compile it to HTML:
+Compile it to HTML (Python version):
 
 #code: """
     uv run picodoc hello.pdoc -o hello.html
+    """
+
+Or (C version):
+
+#code: """
+    path/picodoc hello.pdoc -o hello.html
     """
 
 Open [#~"hello.html"] in your browser. You should see a heading and a
@@ -53,7 +86,7 @@ for \#h1) creates a visible heading. The bare text was automatically wrapped
 in a [#~"<p>"] tag because PicoDoc treats any text not inside a macro
 call as an implicit paragraph.
 
-#h2: Headings and Structure
+#--: Headings and Structure
 
 PicoDoc uses \#doc.title for the document's [#~"<title>"] (shown in the
 browser tab) and separate heading macros for visible headings in the body:
@@ -68,7 +101,7 @@ browser tab) and separate heading macros for visible headings in the body:
     #h6: Level 6
     """
 
-All heading levels have dash aliases that are shorter to type:
+All heading levels have dash aliases:
 
 #code language=picodoc: """
     #-: Level 1 (same as #h1)
@@ -88,7 +121,7 @@ for text that should not appear in the output:
     #//: This is a note to myself — not rendered.
     """
 
-#h2: Paragraphs
+#--: Paragraphs
 
 Bare text is automatically wrapped in [#~"<p>"] tags. A blank line
 separates paragraphs:
@@ -111,9 +144,9 @@ write the body on the following lines:
     the paragraph body form.
     """
 
-#h2: Inline Formatting
+#--: Inline Formatting
 
-#h3: Bold and Italic
+#---: Bold and Italic
 
 Use \#b (or its alias \#**) for bold and \#i (or \#__) for italic:
 
@@ -135,7 +168,7 @@ Bold and italic can be nested:
     This is [#b : bold with [#i : italic inside]].
     """
 
-#h3: Links
+#---: Links
 
 Use [#~"#link"] (or its alias [#~"#>"]) with a [#~"to"] argument
 and optional body for the link text:
@@ -149,7 +182,7 @@ If no body is provided, the [#~"to"] value is used as the link text.
 If [#~"to"] contains no [#~"://"] and no [#~"/"], it is treated as
 a fragment reference (e.g. [#~"to=section1"] produces [#~"href=\"#section1\""]).
 
-#h3: Mixed Inline Example
+#---: Mixed Inline Example
 
 All inline formatting can appear together in a paragraph:
 
@@ -158,9 +191,9 @@ All inline formatting can appear together in a paragraph:
     [#link to="https://example.com" : a link] all in one line.
     """
 
-#h2: Lists
+#--: Lists
 
-#h3: Unordered Lists
+#---: Unordered Lists
 
 Wrap list items in \#ul. Each item uses \#* (or its alias \#li):
 
@@ -172,7 +205,7 @@ Wrap list items in \#ul. Each item uses \#* (or its alias \#li):
     ]
     """
 
-#h3: Ordered Lists
+#---: Ordered Lists
 
 Use [#~"#ol"] instead of [#~"#ul"]:
 
@@ -184,7 +217,7 @@ Use [#~"#ol"] instead of [#~"#ul"]:
     ]
     """
 
-#h3: Items with Formatting
+#---: Items with Formatting
 
 List items can contain any inline macro:
 
@@ -196,7 +229,7 @@ List items can contain any inline macro:
     ]
     """
 
-#h3: Nested Lists
+#---: Nested Lists
 
 Use the bracketed form of [#~"#*"] and nest a list inside:
 
@@ -213,7 +246,7 @@ Use the bracketed form of [#~"#*"] and nest a list inside:
     ]
     """
 
-#h2: Tables
+#--: Tables
 
 The simplest way to make a table is with pipe-delimited rows. The first row
 becomes headers:
@@ -245,7 +278,7 @@ For full control (colspan, custom structure), use the explicit form with
     ]
     """
 
-#h2: Code
+#--: Code
 
 For inline code, use [#~"#~"]:
 
@@ -270,15 +303,15 @@ leading whitespace is stripped from every line.
 To show PicoDoc syntax itself without it being interpreted, use \#literal:
 
 #code language=picodoc: """"
-    #literal"""
+    #literal """
     The #b macro makes text bold.
     Use [#link to="..." : text] for links.
     """
     """"
 
-#h2: User-Defined Macros
+#--: User-Defined Macros
 
-#h3: Simple Variables
+#---: Simple Variables
 
 Define a variable with [#~"#set"]. A macro with no parameters is just a
 named value:
@@ -288,7 +321,7 @@ named value:
     The current version is #version.
     """
 
-#h3: Macros with Arguments
+#---: Macros with Arguments
 
 Add parameters to create reusable templates. Mark required parameters with
 ? and provide defaults with =value:
@@ -305,7 +338,7 @@ Add parameters to create reusable templates. Mark required parameters with
     [#box style=fancy : Content with fancy style.]
     """
 
-#h3: Macros with Body
+#---: Macros with Body
 
 If your macro accepts a body, declare it as [#~"body=?"] (required) and
 it must be the last parameter:
@@ -315,7 +348,7 @@ it must be the last parameter:
     [#greeting target=World : thank you for your support.]
     """
 
-#h3: Out-of-Order Use
+#---: Out-of-Order Use
 
 Macros can be used before they are defined. PicoDoc collects all definitions
 first, then expands:
@@ -325,7 +358,7 @@ first, then expands:
     [#set name=project-name : PicoDoc]
     """
 
-#h2: Overriding Builtin Macros
+#--: Overriding Builtin Macros
 
 You can redefine render-time builtins like \#p, \#b, \#code, and \#link to
 customise how standard elements are rendered. Use the \#builtin.name prefix
@@ -354,7 +387,7 @@ Expansion-time builtins (\#set, \#ifeq, \#ifne, \#ifset, \#include,
 The [#~"builtin.*"] namespace is reserved. You cannot define a macro whose
 name starts with [#~"builtin."].
 
-#h2: Content Wrappers
+#--: Content Wrappers
 
 PicoDoc provides wrapper macros (\#div, \#section, \#span, \#nav, \#header,
 \#footer, \#main, \#article, \#aside) for grouping content in HTML container
@@ -381,9 +414,9 @@ For page-level layout, use \#doc.content to automatically wrap loose content
 The header and footer remain outside the [#~"<main>"] element, while loose
 paragraphs and headings are collected inside it.
 
-#h2: String Literals
+#--: String Literals
 
-#h3: Interpreted Strings
+#---: Interpreted Strings
 
 Delimited by single double quotes. Escape sequences are processed:
 
@@ -400,7 +433,7 @@ To embed macro calls inside a string, use [#~"\\[...\\]"] (code mode):
     #p"PicoDoc version \[#version] is ready."
     """
 
-#h3: Raw Strings
+#---: Raw Strings
 
 Delimited by three or more double quotes. Nothing inside is processed:
 
@@ -408,22 +441,22 @@ Delimited by three or more double quotes. Nothing inside is processed:
     """This is raw: \n is literal, #name is not expanded."""
     """"
 
-#h3: Whitespace Stripping
+#---: Whitespace Stripping
 
 When a string starts on the next line after the delimiter and the closing
 delimiter is on its own line, leading whitespace matching the closing
 delimiter's indentation is stripped from all lines:
 
-#code language=picodoc: """
+#code language=picodoc: """"
     [#code language=python : """
         def hello():
             print("world")
         """]
-    """
+    """"
 
 The four spaces before each line are stripped, producing clean output.
 
-#h2: Conditionals
+#--: Conditionals
 
 PicoDoc provides three conditional macros:
 
@@ -457,7 +490,7 @@ variable:
 
 Then compile with [#~"uv run picodoc -e mode=draft doc.pdoc -o doc.html"].
 
-#h2: Including Other Files
+#--: Including Other Files
 
 The [#~"#include"] macro inserts another file at the call site. The
 filename is provided as the body:
@@ -465,7 +498,7 @@ filename is provided as the body:
 #code language=picodoc: """
     [#include : header.pdoc]
 
-    #h2: Main Content
+    #--: Main Content
 
     #p: The body of the document.
 
@@ -482,7 +515,7 @@ parameter:
     [#include literal=true : code.js]
     """
 
-#h2: Document Metadata
+#--: Document Metadata
 
 Use the [#~"doc.*"] namespace for HTML head elements:
 
@@ -498,7 +531,7 @@ Use the [#~"doc.*"] namespace for HTML head elements:
 Use [#~"#doc.body"] to set [#~"class"] and [#~"id"] attributes on the
 [#~"<body>"] element.
 
-#h2: Table of Contents
+#--: Table of Contents
 
 Use [#~"#doc.toc"] to generate a table of contents from your document's
 headings. It renders a [#~"<ul>"] tree, so wrap it in a container macro
@@ -526,7 +559,7 @@ parameter to control depth:
 All headings automatically receive [#~"id"] attributes based on their text,
 enabling deep linking even without a TOC.
 
-#h2: Environment Variables
+#--: Environment Variables
 
 The [#~"env.*"] namespace provides global values. They can be set from
 three sources:
@@ -559,7 +592,7 @@ Access environment values as zero-argument macros:
     [#ifset name=env.author : Written by [#env.author].]
     """
 
-#h2: CLI Quick Reference
+#--: CLI Quick Reference
 
 #table:
   Flag | Description
@@ -588,7 +621,7 @@ Access environment values as zero-argument macros:
   1 | Syntax error (lex or parse failure)
   2 | Evaluation error or invalid arguments
 
-#h2: Configuration File
+#--: Configuration File
 
 Place a [#~"picodoc.toml"] next to your input file. CLI flags override
 config values.
@@ -604,7 +637,7 @@ config values.
     viewport = "width=device-width, initial-scale=1"
     """
 
-#h2: Next Steps
+#--: Next Steps
 
 You now know enough to write real documents in PicoDoc. For a complete and
 systematic description of every feature, see the [#b : Language Reference]

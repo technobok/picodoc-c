@@ -9,7 +9,6 @@
 #doc.heading.anchor level=4
 #doc.link rel=stylesheet href=style/picodoc.css 
 #doc.script src=style/tocbot.min.js
-#//: #doc.script type=text/javascript: [#include literal=true: style/init.js]
 #doc.script src=style/init.js
 #doc.script src=style/prism.min.js
 #doc.script src=style/prism-picodoc.js

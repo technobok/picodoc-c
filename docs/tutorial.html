@@ -3,36 +3,197 @@
 <head>
 <meta charset="utf-8">
 <title>Getting Started with PicoDoc</title>
+<link rel="stylesheet" href="style/picodoc.css">
+<script src="style/tocbot.min.js"></script>
+<script src="style/init.js"></script>
 <script src="style/prism.min.js"></script>
 <script src="style/prism-picodoc.js"></script>
 </head>
-<body>
-<h2 id="what-is-picodoc">What is PicoDoc?</h2>
+<body class="toc-sidebar">
+<nav id="nav">
+  <div class="doc-wrapper">
+    <a title="PicoDoc" href="../docs/">PicoDoc</a>
+  </div>
+
+  <label>
+    <input id="mode-checkbox" class="mode-checkbox" type="checkbox" />
+    <div class="mode-slot">
+      <div class="sun-icon-wrapper">
+        <svg
+          class="sun-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+      </div>
+      <div class="mode-button"></div>
+      <div class="moon-icon-wrapper">
+        <svg
+          class="moon-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </div>
+    </div>
+  </label>
+
+
+</nav>
+<header>
+  <h1 id="picodoc-tutorial"><a href="#picodoc-tutorial">PicoDoc Tutorial</a></h1>
+</header>
+<nav class="toc-sidebar" id="toc">
+  <div id="tocfile">
+Table of Contents</div>
+
+  <ul>
+<li><a href="#picodoc-tutorial">PicoDoc Tutorial</a>
+<ul>
+<li><a href="#what-is-picodoc">What is PicoDoc?</a>
+</li>
+<li><a href="#installation-python-version">Installation - Python version</a>
+</li>
+<li><a href="#installation-c-version">Installation - C version</a>
+</li>
+<li><a href="#your-first-document">Your First Document</a>
+</li>
+<li><a href="#headings-and-structure">Headings and Structure</a>
+</li>
+<li><a href="#paragraphs">Paragraphs</a>
+</li>
+<li><a href="#inline-formatting">Inline Formatting</a>
+<ul>
+<li><a href="#bold-and-italic">Bold and Italic</a>
+</li>
+<li><a href="#links">Links</a>
+</li>
+<li><a href="#mixed-inline-example">Mixed Inline Example</a>
+</li>
+</ul>
+</li>
+<li><a href="#lists">Lists</a>
+<ul>
+<li><a href="#unordered-lists">Unordered Lists</a>
+</li>
+<li><a href="#ordered-lists">Ordered Lists</a>
+</li>
+<li><a href="#items-with-formatting">Items with Formatting</a>
+</li>
+<li><a href="#nested-lists">Nested Lists</a>
+</li>
+</ul>
+</li>
+<li><a href="#tables">Tables</a>
+</li>
+<li><a href="#code">Code</a>
+</li>
+<li><a href="#user-defined-macros">User-Defined Macros</a>
+<ul>
+<li><a href="#simple-variables">Simple Variables</a>
+</li>
+<li><a href="#macros-with-arguments">Macros with Arguments</a>
+</li>
+<li><a href="#macros-with-body">Macros with Body</a>
+</li>
+<li><a href="#out-of-order-use">Out-of-Order Use</a>
+</li>
+</ul>
+</li>
+<li><a href="#overriding-builtin-macros">Overriding Builtin Macros</a>
+</li>
+<li><a href="#content-wrappers">Content Wrappers</a>
+</li>
+<li><a href="#string-literals">String Literals</a>
+<ul>
+<li><a href="#interpreted-strings">Interpreted Strings</a>
+</li>
+<li><a href="#raw-strings">Raw Strings</a>
+</li>
+<li><a href="#whitespace-stripping">Whitespace Stripping</a>
+</li>
+</ul>
+</li>
+<li><a href="#conditionals">Conditionals</a>
+</li>
+<li><a href="#including-other-files">Including Other Files</a>
+</li>
+<li><a href="#document-metadata">Document Metadata</a>
+</li>
+<li><a href="#table-of-contents">Table of Contents</a>
+</li>
+<li><a href="#environment-variables">Environment Variables</a>
+</li>
+<li><a href="#cli-quick-reference">CLI Quick Reference</a>
+</li>
+<li><a href="#configuration-file">Configuration File</a>
+</li>
+<li><a href="#next-steps">Next Steps</a>
+</li>
+</ul>
+</li>
+</ul>
+
+</nav>
+<main id="content">
+<h2 id="what-is-picodoc"><a href="#what-is-picodoc">1. What is PicoDoc?</a></h2>
 <p>PicoDoc is a macro-based markup language that compiles to HTML. Everything in
 PicoDoc (headings, bold text, links, user-defined templates) is a macro
 call. This single abstraction keeps the language regular and predictable: once
 you learn the macro syntax, you know the entire language.</p>
-<h2 id="installation">Installation</h2>
-<p>PicoDoc requires <strong>Python 3.14+</strong> and <a href="https://docs.astral.sh/uv/">uv</a>.</p>
+<h2 id="installation-python-version"><a href="#installation-python-version">2. Installation - Python version</a></h2>
+<p>The PicoDoc Python project requires <strong>Python 3.14+</strong> and 
+<a href="https://docs.astral.sh/uv/">uv</a>.</p>
 <pre><code>git clone &lt;repo-url&gt; picodoc
 cd picodoc
 uv sync</code></pre>
 <p>Verify the installation:</p>
 <pre><code>uv run picodoc --help</code></pre>
-<h2 id="your-first-document">Your First Document</h2>
+<h2 id="installation-c-version"><a href="#installation-c-version">3. Installation - C version</a></h2>
+<p>The C version requires a C compiler:</p>
+<pre><code>git clone &lt;repo-url&gt; picodoc-c
+cd picodoc
+make</code></pre>
+<h2 id="your-first-document"><a href="#your-first-document">4. Your First Document</a></h2>
 <p>Create a file called <code>hello.pdoc</code>:</p>
 <pre><code class="language-picodoc">#doc.title: Hello, PicoDoc
 #-: Hello, PicoDoc
 
 This is my first document.</code></pre>
-<p>Compile it to HTML:</p>
+<p>Compile it to HTML (Python version):</p>
 <pre><code>uv run picodoc hello.pdoc -o hello.html</code></pre>
+<p>Or (C version):</p>
+<pre><code>path/picodoc hello.pdoc -o hello.html</code></pre>
 <p>Open <code>hello.html</code> in your browser. You should see a heading and a
 paragraph. The #doc.title macro sets the browser tab title, while #- (alias
 for #h1) creates a visible heading. The bare text was automatically wrapped
 in a <code>&lt;p&gt;</code> tag because PicoDoc treats any text not inside a macro
 call as an implicit paragraph.</p>
-<h2 id="headings-and-structure">Headings and Structure</h2>
+<h2 id="headings-and-structure"><a href="#headings-and-structure">5. Headings and Structure</a></h2>
 <p>PicoDoc uses #doc.title for the document's <code>&lt;title&gt;</code> (shown in the
 browser tab) and separate heading macros for visible headings in the body:</p>
 <pre><code class="language-picodoc">#doc.title: Page Title (in browser tab only)
@@ -42,7 +203,7 @@ browser tab) and separate heading macros for visible headings in the body:</p>
 #h4: Level 4
 #h5: Level 5
 #h6: Level 6</code></pre>
-<p>All heading levels have dash aliases that are shorter to type:</p>
+<p>All heading levels have dash aliases:</p>
 <pre><code class="language-picodoc">#-: Level 1 (same as #h1)
 #--: Level 2 (same as #h2)
 #---: Level 3 (same as #h3)
@@ -54,7 +215,7 @@ for text that should not appear in the output:</p>
 <pre><code class="language-picodoc">#hr
 
 #//: This is a note to myself &#x2014; not rendered.</code></pre>
-<h2 id="paragraphs">Paragraphs</h2>
+<h2 id="paragraphs"><a href="#paragraphs">6. Paragraphs</a></h2>
 <p>Bare text is automatically wrapped in <code>&lt;p&gt;</code> tags. A blank line
 separates paragraphs:</p>
 <pre><code class="language-picodoc">This is the first paragraph. It can span
@@ -68,8 +229,8 @@ write the body on the following lines:</p>
 #p:
 A multi-line paragraph using
 the paragraph body form.</code></pre>
-<h2 id="inline-formatting">Inline Formatting</h2>
-<h3 id="bold-and-italic">Bold and Italic</h3>
+<h2 id="inline-formatting"><a href="#inline-formatting">7. Inline Formatting</a></h2>
+<h3 id="bold-and-italic"><a href="#bold-and-italic">7.1. Bold and Italic</a></h3>
 <p>Use #b (or its alias #**) for bold and #i (or #__) for italic:</p>
 <pre><code class="language-picodoc">This is #**"bold" text.
 This is #__"italic" text.</code></pre>
@@ -78,7 +239,7 @@ This is #__"italic" text.</code></pre>
 This is [#i : italic text in brackets].</code></pre>
 <p>Bold and italic can be nested:</p>
 <pre><code class="language-picodoc">This is [#b : bold with [#i : italic inside]].</code></pre>
-<h3 id="links">Links</h3>
+<h3 id="links"><a href="#links">7.2. Links</a></h3>
 <p>Use <code>#link</code> (or its alias <code>#&gt;</code>) with a <code>to</code> argument
 and optional body for the link text:</p>
 <pre><code class="language-picodoc">Visit [#link to="https://example.com" : Example Site] today.
@@ -86,33 +247,33 @@ and optional body for the link text:</p>
 <p>If no body is provided, the <code>to</code> value is used as the link text.
 If <code>to</code> contains no <code>://</code> and no <code>/</code>, it is treated as
 a fragment reference (e.g. <code>to=section1</code> produces <code>href="#section1"</code>).</p>
-<h3 id="mixed-inline-example">Mixed Inline Example</h3>
+<h3 id="mixed-inline-example"><a href="#mixed-inline-example">7.3. Mixed Inline Example</a></h3>
 <p>All inline formatting can appear together in a paragraph:</p>
 <pre><code class="language-picodoc">A paragraph with #**"bold", #__"italic", and
 [#link to="https://example.com" : a link] all in one line.</code></pre>
-<h2 id="lists">Lists</h2>
-<h3 id="unordered-lists">Unordered Lists</h3>
+<h2 id="lists"><a href="#lists">8. Lists</a></h2>
+<h3 id="unordered-lists"><a href="#unordered-lists">8.1. Unordered Lists</a></h3>
 <p>Wrap list items in #ul. Each item uses #* (or its alias #li):</p>
 <pre><code class="language-picodoc">[#ul :
   #*: First item
   #*: Second item
   #*: Third item
 ]</code></pre>
-<h3 id="ordered-lists">Ordered Lists</h3>
+<h3 id="ordered-lists"><a href="#ordered-lists">8.2. Ordered Lists</a></h3>
 <p>Use <code>#ol</code> instead of <code>#ul</code>:</p>
 <pre><code class="language-picodoc">[#ol :
   #*: Step one
   #*: Step two
   #*: Step three
 ]</code></pre>
-<h3 id="items-with-formatting">Items with Formatting</h3>
+<h3 id="items-with-formatting"><a href="#items-with-formatting">8.3. Items with Formatting</a></h3>
 <p>List items can contain any inline macro:</p>
 <pre><code class="language-picodoc">[#ul :
   #*: A #**"bold" item
   #*: An #__"italic" item
   #*: A [#link to="https://example.com" : linked] item
 ]</code></pre>
-<h3 id="nested-lists">Nested Lists</h3>
+<h3 id="nested-lists"><a href="#nested-lists">8.4. Nested Lists</a></h3>
 <p>Use the bracketed form of <code>#*</code> and nest a list inside:</p>
 <pre><code class="language-picodoc">[#ul :
   #*: Top-level item
@@ -124,7 +285,7 @@ a fragment reference (e.g. <code>to=section1</code> produces <code>href="#sectio
   ]
   #*: Another top-level item
 ]</code></pre>
-<h2 id="tables">Tables</h2>
+<h2 id="tables"><a href="#tables">9. Tables</a></h2>
 <p>The simplest way to make a table is with pipe-delimited rows. The first row
 becomes headers:</p>
 <pre><code class="language-picodoc">#table:
@@ -143,7 +304,7 @@ becomes headers:</p>
   [#tr : [#td: Alice] [#td: 30]]
   [#tr : [#td span=2 : Total: 1 person]]
 ]</code></pre>
-<h2 id="code">Code</h2>
+<h2 id="code"><a href="#code">10. Code</a></h2>
 <p>For inline code, use <code>#~</code>:</p>
 <pre><code class="language-picodoc">Use the [#~ : print()] function to output text.
 The [#~ language=python : def] keyword starts a function.</code></pre>
@@ -156,17 +317,17 @@ The [#~ language=python : def] keyword starts a function.</code></pre>
 <p>The indentation of the closing <code>"""</code> delimiter determines how much
 leading whitespace is stripped from every line.</p>
 <p>To show PicoDoc syntax itself without it being interpreted, use #literal:</p>
-<pre><code class="language-picodoc">#literal"""
+<pre><code class="language-picodoc">#literal """
 The #b macro makes text bold.
 Use [#link to="..." : text] for links.
 """</code></pre>
-<h2 id="user-defined-macros">User-Defined Macros</h2>
-<h3 id="simple-variables">Simple Variables</h3>
+<h2 id="user-defined-macros"><a href="#user-defined-macros">11. User-Defined Macros</a></h2>
+<h3 id="simple-variables"><a href="#simple-variables">11.1. Simple Variables</a></h3>
 <p>Define a variable with <code>#set</code>. A macro with no parameters is just a
 named value:</p>
 <pre><code class="language-picodoc">[#set name=version : 1.0]
 The current version is #version.</code></pre>
-<h3 id="macros-with-arguments">Macros with Arguments</h3>
+<h3 id="macros-with-arguments"><a href="#macros-with-arguments">11.2. Macros with Arguments</a></h3>
 <p>Add parameters to create reusable templates. Mark required parameters with
 ? and provide defaults with =value:</p>
 <pre><code class="language-picodoc">[#set name=greeting target=? : Hello, #target!]
@@ -175,17 +336,17 @@ The current version is #version.</code></pre>
 <pre><code class="language-picodoc">[#set name=box style=default body=? : [#p : (#style) #body]]
 [#box : Content with default style.]
 [#box style=fancy : Content with fancy style.]</code></pre>
-<h3 id="macros-with-body">Macros with Body</h3>
+<h3 id="macros-with-body"><a href="#macros-with-body">11.3. Macros with Body</a></h3>
 <p>If your macro accepts a body, declare it as <code>body=?</code> (required) and
 it must be the last parameter:</p>
 <pre><code class="language-picodoc">[#set name=greeting target=? body=? : Dear #target, #body Kind regards.]
 [#greeting target=World : thank you for your support.]</code></pre>
-<h3 id="out-of-order-use">Out-of-Order Use</h3>
+<h3 id="out-of-order-use"><a href="#out-of-order-use">11.4. Out-of-Order Use</a></h3>
 <p>Macros can be used before they are defined. PicoDoc collects all definitions
 first, then expands:</p>
 <pre><code class="language-picodoc">#p: The project is #project-name.
 [#set name=project-name : PicoDoc]</code></pre>
-<h2 id="overriding-builtin-macros">Overriding Builtin Macros</h2>
+<h2 id="overriding-builtin-macros"><a href="#overriding-builtin-macros">12. Overriding Builtin Macros</a></h2>
 <p>You can redefine render-time builtins like #p, #b, #code, and #link to
 customise how standard elements are rendered. Use the #builtin.name prefix
 to call the original builtin from inside your override:</p>
@@ -203,7 +364,7 @@ the real #p via #builtin.p. This works for any render-time builtin:</p>
 #comment, #table) cannot be overridden.</p>
 <p>The <code>builtin.*</code> namespace is reserved. You cannot define a macro whose
 name starts with <code>builtin.</code>.</p>
-<h2 id="content-wrappers">Content Wrappers</h2>
+<h2 id="content-wrappers"><a href="#content-wrappers">13. Content Wrappers</a></h2>
 <p>PicoDoc provides wrapper macros (#div, #section, #span, #nav, #header,
 #footer, #main, #article, #aside) for grouping content in HTML container
 elements. They accept optional <code>class</code> and <code>id</code> parameters:</p>
@@ -220,8 +381,8 @@ elements. They accept optional <code>class</code> and <code>id</code> parameters
 [#footer : #p: Copyright]</code></pre>
 <p>The header and footer remain outside the <code>&lt;main&gt;</code> element, while loose
 paragraphs and headings are collected inside it.</p>
-<h2 id="string-literals">String Literals</h2>
-<h3 id="interpreted-strings">Interpreted Strings</h3>
+<h2 id="string-literals"><a href="#string-literals">14. String Literals</a></h2>
+<h3 id="interpreted-strings"><a href="#interpreted-strings">14.1. Interpreted Strings</a></h3>
 <p>Delimited by single double quotes. Escape sequences are processed:</p>
 <pre><code class="language-picodoc">"A simple string."
 "A tab:\there. A newline:\nSecond line."
@@ -229,19 +390,19 @@ paragraphs and headings are collected inside it.</p>
 <p>To embed macro calls inside a string, use <code>\[...\]</code> (code mode):</p>
 <pre><code class="language-picodoc">[#set name=version : 1.0]
 #p"PicoDoc version \[#version] is ready."</code></pre>
-<h3 id="raw-strings">Raw Strings</h3>
+<h3 id="raw-strings"><a href="#raw-strings">14.2. Raw Strings</a></h3>
 <p>Delimited by three or more double quotes. Nothing inside is processed:</p>
 <pre><code class="language-picodoc">"""This is raw: \n is literal, #name is not expanded."""</code></pre>
-<h3 id="whitespace-stripping">Whitespace Stripping</h3>
+<h3 id="whitespace-stripping"><a href="#whitespace-stripping">14.3. Whitespace Stripping</a></h3>
 <p>When a string starts on the next line after the delimiter and the closing
 delimiter is on its own line, leading whitespace matching the closing
 delimiter's indentation is stripped from all lines:</p>
-<pre><code class="language-picodoc">    [#code language=python : </code></pre>
-<p>        def hello():
-            print("world")
-        ]</p>
+<pre><code class="language-picodoc">[#code language=python : """
+    def hello():
+        print("world")
+    """]</code></pre>
 <p>The four spaces before each line are stripped, producing clean output.</p>
-<h2 id="conditionals">Conditionals</h2>
+<h2 id="conditionals"><a href="#conditionals">15. Conditionals</a></h2>
 <p>PicoDoc provides three conditional macros:</p>
 <p>The #ifeq macro tests string equality:</p>
 <pre><code class="language-picodoc">[#set name=mode : draft]
@@ -256,12 +417,12 @@ variable:</p>
   #p: DRAFT &#x2014; not for distribution.
 ]</code></pre>
 <p>Then compile with <code>uv run picodoc -e mode=draft doc.pdoc -o doc.html</code>.</p>
-<h2 id="including-other-files">Including Other Files</h2>
+<h2 id="including-other-files"><a href="#including-other-files">16. Including Other Files</a></h2>
 <p>The <code>#include</code> macro inserts another file at the call site. The
 filename is provided as the body:</p>
 <pre><code class="language-picodoc">[#include : header.pdoc]
 
-#h2: Main Content
+#--: Main Content
 
 #p: The body of the document.
 
@@ -271,7 +432,7 @@ documents.</p>
 <p>To include a file as raw text without parsing, use the <code>literal</code>
 parameter:</p>
 <pre><code class="language-picodoc">[#include literal=true : code.js]</code></pre>
-<h2 id="document-metadata">Document Metadata</h2>
+<h2 id="document-metadata"><a href="#document-metadata">17. Document Metadata</a></h2>
 <p>Use the <code>doc.*</code> namespace for HTML head elements:</p>
 <pre><code class="language-picodoc">#doc.lang: en
 #doc.body class=dark-theme
@@ -281,7 +442,7 @@ parameter:</p>
 #doc.author: Jane Doe</code></pre>
 <p>Use <code>#doc.body</code> to set <code>class</code> and <code>id</code> attributes on the
 <code>&lt;body&gt;</code> element.</p>
-<h2 id="table-of-contents">Table of Contents</h2>
+<h2 id="table-of-contents"><a href="#table-of-contents">18. Table of Contents</a></h2>
 <p>Use <code>#doc.toc</code> to generate a table of contents from your document's
 headings. It renders a <code>&lt;ul&gt;</code> tree, so wrap it in a container macro
 for placement control:</p>
@@ -299,7 +460,7 @@ parameter to control depth:</p>
 ]</code></pre>
 <p>All headings automatically receive <code>id</code> attributes based on their text,
 enabling deep linking even without a TOC.</p>
-<h2 id="environment-variables">Environment Variables</h2>
+<h2 id="environment-variables"><a href="#environment-variables">19. Environment Variables</a></h2>
 <p>The <code>env.*</code> namespace provides global values. They can be set from
 three sources:</p>
 <p><strong>CLI</strong>:</p>
@@ -313,7 +474,7 @@ author = "Alice"</code></pre>
 <p>Document-level definitions have the highest precedence, then CLI, then config.</p>
 <p>Access environment values as zero-argument macros:</p>
 <pre><code class="language-picodoc">[#ifset name=env.author : Written by [#env.author].]</code></pre>
-<h2 id="cli-quick-reference">CLI Quick Reference</h2>
+<h2 id="cli-quick-reference"><a href="#cli-quick-reference">20. CLI Quick Reference</a></h2>
 <table>
 <thead>
 <tr><th>Flag</th><th>Description</th></tr>
@@ -344,7 +505,7 @@ author = "Alice"</code></pre>
 <tr><td>2</td><td>Evaluation error or invalid arguments</td></tr>
 </tbody>
 </table>
-<h2 id="configuration-file">Configuration File</h2>
+<h2 id="configuration-file"><a href="#configuration-file">21. Configuration File</a></h2>
 <p>Place a <code>picodoc.toml</code> next to your input file. CLI flags override
 config values.</p>
 <pre><code class="language-toml">[env]
@@ -355,7 +516,7 @@ files = ["style.css"]
 
 [meta]
 viewport = "width=device-width, initial-scale=1"</code></pre>
-<h2 id="next-steps">Next Steps</h2>
+<h2 id="next-steps"><a href="#next-steps">22. Next Steps</a></h2>
 <p>You now know enough to write real documents in PicoDoc. For a complete and
 systematic description of every feature, see the <strong>Language Reference</strong>
 in the file <code>reference.pdoc</code>.</p>
@@ -365,5 +526,6 @@ in the file <code>reference.pdoc</code>.</p>
 <li>The expansion model: how multi-pass evaluation works</li>
 <li>Editor support: Neovim syntax highlighting and LSP diagnostics</li>
 </ul>
+</main>
 </body>
 </html>
