@@ -53,4 +53,8 @@
             document.documentElement.classList.add('dark-mode');
           }
         });
+
+        if (typeof Prism !== 'undefined') {
+            Prism.highlightAll();
+        }
     });

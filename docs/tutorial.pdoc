@@ -4,6 +4,8 @@
 #comment: A progressive guide from minimal document to productive use.
 
 #doc.title: Getting Started with PicoDoc
+#doc.script src=style/prism.min.js
+#doc.script src=style/prism-picodoc.js
 
 #h2: What is PicoDoc?
 
@@ -32,7 +34,7 @@ Verify the installation:
 
 Create a file called [#~"hello.pdoc"]:
 
-#code: """
+#code language=picodoc: """
     #doc.title: Hello, PicoDoc
     #-: Hello, PicoDoc
 
@@ -56,7 +58,7 @@ call as an implicit paragraph.
 PicoDoc uses \#doc.title for the document's [#~"<title>"] (shown in the
 browser tab) and separate heading macros for visible headings in the body:
 
-#code: """
+#code language=picodoc: """
     #doc.title: Page Title (in browser tab only)
     #h1: Level 1 (visible heading)
     #h2: Level 2 (Section)
@@ -68,7 +70,7 @@ browser tab) and separate heading macros for visible headings in the body:
 
 All heading levels have dash aliases that are shorter to type:
 
-#code: """
+#code language=picodoc: """
     #-: Level 1 (same as #h1)
     #--: Level 2 (same as #h2)
     #---: Level 3 (same as #h3)
@@ -80,7 +82,7 @@ All heading levels have dash aliases that are shorter to type:
 Use [#~"#hr"] for a horizontal rule and [#~"#//"] (or [#~"#comment"])
 for text that should not appear in the output:
 
-#code: """
+#code language=picodoc: """
     #hr
 
     #//: This is a note to myself — not rendered.
@@ -91,7 +93,7 @@ for text that should not appear in the output:
 Bare text is automatically wrapped in [#~"<p>"] tags. A blank line
 separates paragraphs:
 
-#code: """
+#code language=picodoc: """
     This is the first paragraph. It can span
     multiple lines.
 
@@ -101,7 +103,7 @@ separates paragraphs:
 You can also use [#~"#p"] explicitly. The paragraph body form lets you
 write the body on the following lines:
 
-#code: """
+#code language=picodoc: """
     #p: An explicit single-line paragraph.
 
     #p:
@@ -115,21 +117,21 @@ write the body on the following lines:
 
 Use \#b (or its alias \#**) for bold and \#i (or \#__) for italic:
 
-#code: """
+#code language=picodoc: """
     This is #**"bold" text.
     This is #__"italic" text.
     """
 
 For longer spans, use the bracketed form:
 
-#code: """
+#code language=picodoc: """
     This is [#b : bold text that spans several words].
     This is [#i : italic text in brackets].
     """
 
 Bold and italic can be nested:
 
-#code: """
+#code language=picodoc: """
     This is [#b : bold with [#i : italic inside]].
     """
 
@@ -138,7 +140,7 @@ Bold and italic can be nested:
 Use [#~"#link"] (or its alias [#~"#>"]) with a [#~"to"] argument
 and optional body for the link text:
 
-#code: """
+#code language=picodoc: """
     Visit [#link to="https://example.com" : Example Site] today.
     [#> to="https://example.com" : Short form with alias]
     """
@@ -151,7 +153,7 @@ a fragment reference (e.g. [#~"to=section1"] produces [#~"href=\"#section1\""]).
 
 All inline formatting can appear together in a paragraph:
 
-#code: """
+#code language=picodoc: """
     A paragraph with #**"bold", #__"italic", and
     [#link to="https://example.com" : a link] all in one line.
     """
@@ -162,7 +164,7 @@ All inline formatting can appear together in a paragraph:
 
 Wrap list items in \#ul. Each item uses \#* (or its alias \#li):
 
-#code: """
+#code language=picodoc: """
     [#ul :
       #*: First item
       #*: Second item
@@ -174,7 +176,7 @@ Wrap list items in \#ul. Each item uses \#* (or its alias \#li):
 
 Use [#~"#ol"] instead of [#~"#ul"]:
 
-#code: """
+#code language=picodoc: """
     [#ol :
       #*: Step one
       #*: Step two
@@ -186,7 +188,7 @@ Use [#~"#ol"] instead of [#~"#ul"]:
 
 List items can contain any inline macro:
 
-#code: """
+#code language=picodoc: """
     [#ul :
       #*: A #**"bold" item
       #*: An #__"italic" item
@@ -198,7 +200,7 @@ List items can contain any inline macro:
 
 Use the bracketed form of [#~"#*"] and nest a list inside:
 
-#code: """
+#code language=picodoc: """
     [#ul :
       #*: Top-level item
       [#* : Item with sublist
@@ -216,7 +218,7 @@ Use the bracketed form of [#~"#*"] and nest a list inside:
 The simplest way to make a table is with pipe-delimited rows. The first row
 becomes headers:
 
-#code: """
+#code language=picodoc: """
     #table:
       Name | Age | Status
       Alice | 30 | Active
@@ -225,7 +227,7 @@ becomes headers:
 
 Cells can contain inline macros:
 
-#code: """
+#code language=picodoc: """
     #table:
       Feature | Supported
       Bold | [#**"Yes"]
@@ -235,7 +237,7 @@ Cells can contain inline macros:
 For full control (colspan, custom structure), use the explicit form with
 \#tr, \#th, and \#td:
 
-#code: """
+#code language=picodoc: """
     [#table :
       [#tr : [#th: Name] [#th: Age]]
       [#tr : [#td: Alice] [#td: 30]]
@@ -247,7 +249,7 @@ For full control (colspan, custom structure), use the explicit form with
 
 For inline code, use [#~"#~"]:
 
-#code: """
+#code language=picodoc: """
     Use the [#~ : print()] function to output text.
     The [#~ language=python : def] keyword starts a function.
     """
@@ -255,7 +257,7 @@ For inline code, use [#~"#~"]:
 For code blocks, use [#~"#code"] with a raw string body and an optional
 [#~"language"] parameter:
 
-#code: """"
+#code language=picodoc: """"
     [#code language=python : """
         def hello():
             print("Hello, world!")
@@ -267,7 +269,7 @@ leading whitespace is stripped from every line.
 
 To show PicoDoc syntax itself without it being interpreted, use \#literal:
 
-#code: """"
+#code language=picodoc: """"
     #literal"""
     The #b macro makes text bold.
     Use [#link to="..." : text] for links.
@@ -281,7 +283,7 @@ To show PicoDoc syntax itself without it being interpreted, use \#literal:
 Define a variable with [#~"#set"]. A macro with no parameters is just a
 named value:
 
-#code: """
+#code language=picodoc: """
     [#set name=version : 1.0]
     The current version is #version.
     """
@@ -291,13 +293,13 @@ named value:
 Add parameters to create reusable templates. Mark required parameters with
 ? and provide defaults with =value:
 
-#code: """
+#code language=picodoc: """
     [#set name=greeting target=? : Hello, #target!]
     [#greeting target=World]
     [#greeting target=Alice]
     """
 
-#code: """
+#code language=picodoc: """
     [#set name=box style=default body=? : [#p : (#style) #body]]
     [#box : Content with default style.]
     [#box style=fancy : Content with fancy style.]
@@ -308,7 +310,7 @@ Add parameters to create reusable templates. Mark required parameters with
 If your macro accepts a body, declare it as [#~"body=?"] (required) and
 it must be the last parameter:
 
-#code: """
+#code language=picodoc: """
     [#set name=greeting target=? body=? : Dear #target, #body Kind regards.]
     [#greeting target=World : thank you for your support.]
     """
@@ -318,7 +320,7 @@ it must be the last parameter:
 Macros can be used before they are defined. PicoDoc collects all definitions
 first, then expands:
 
-#code: """
+#code language=picodoc: """
     #p: The project is #project-name.
     [#set name=project-name : PicoDoc]
     """
@@ -329,7 +331,7 @@ You can redefine render-time builtins like \#p, \#b, \#code, and \#link to
 customise how standard elements are rendered. Use the \#builtin.name prefix
 to call the original builtin from inside your override:
 
-#code: """
+#code language=picodoc: """
     [#set name=p body=? : [#builtin.p : [#b : #body]]]
     This paragraph will be bold.
     """
@@ -337,7 +339,7 @@ to call the original builtin from inside your override:
 Here the user-defined \#p wraps every paragraph body in bold, delegating to
 the real \#p via \#builtin.p. This works for any render-time builtin:
 
-#code: """
+#code language=picodoc: """
     [#set name=code body=? :
       [#div class=code-block :
         [#builtin.code : #body]
@@ -358,7 +360,7 @@ PicoDoc provides wrapper macros (\#div, \#section, \#span, \#nav, \#header,
 \#footer, \#main, \#article, \#aside) for grouping content in HTML container
 elements. They accept optional [#~"class"] and [#~"id"] parameters:
 
-#code: """
+#code language=picodoc: """
     [#div class=card :
       #--: Card Title
       #p: Card body text here.
@@ -368,7 +370,7 @@ elements. They accept optional [#~"class"] and [#~"id"] parameters:
 For page-level layout, use \#doc.content to automatically wrap loose content
 (anything not inside an explicit wrapper) in a container element:
 
-#code: """
+#code language=picodoc: """
     #doc.content type=main class=content
 
     [#header : #-: My Site]
@@ -385,7 +387,7 @@ paragraphs and headings are collected inside it.
 
 Delimited by single double quotes. Escape sequences are processed:
 
-#code: """
+#code language=picodoc: """
     "A simple string."
     "A tab:\there. A newline:\nSecond line."
     "A literal quote: \" inside."
@@ -393,7 +395,7 @@ Delimited by single double quotes. Escape sequences are processed:
 
 To embed macro calls inside a string, use [#~"\\[...\\]"] (code mode):
 
-#code: """
+#code language=picodoc: """
     [#set name=version : 1.0]
     #p"PicoDoc version \[#version] is ready."
     """
@@ -402,7 +404,7 @@ To embed macro calls inside a string, use [#~"\\[...\\]"] (code mode):
 
 Delimited by three or more double quotes. Nothing inside is processed:
 
-#code: """"
+#code language=picodoc: """"
     """This is raw: \n is literal, #name is not expanded."""
     """"
 
@@ -412,7 +414,7 @@ When a string starts on the next line after the delimiter and the closing
 delimiter is on its own line, leading whitespace matching the closing
 delimiter's indentation is stripped from all lines:
 
-#code: """
+#code language=picodoc: """
     [#code language=python : """
         def hello():
             print("world")
@@ -427,27 +429,27 @@ PicoDoc provides three conditional macros:
 
 The \#ifeq macro tests string equality:
 
-#code: """
+#code language=picodoc: """
     [#set name=mode : draft]
     [#ifeq lhs=#mode rhs=draft : This document is a draft.]
     """
 
 The \#ifne macro tests string inequality:
 
-#code: """
+#code language=picodoc: """
     [#ifne lhs=#mode rhs=production : Not yet published.]
     """
 
 The \#ifset macro tests if a macro is defined:
 
-#code: """
+#code language=picodoc: """
     [#ifset name=env.author : Written by [#env.author].]
     """
 
 A practical pattern is a draft watermark controlled by an environment
 variable:
 
-#code: """
+#code language=picodoc: """
     [#ifeq lhs=[#env.mode] rhs=draft :
       #p: DRAFT — not for distribution.
     ]
@@ -460,7 +462,7 @@ Then compile with [#~"uv run picodoc -e mode=draft doc.pdoc -o doc.html"].
 The [#~"#include"] macro inserts another file at the call site. The
 filename is provided as the body:
 
-#code: """
+#code language=picodoc: """
     [#include : header.pdoc]
 
     #h2: Main Content
@@ -476,7 +478,7 @@ documents.
 To include a file as raw text without parsing, use the [#~"literal"]
 parameter:
 
-#code: """
+#code language=picodoc: """
     [#include literal=true : code.js]
     """
 
@@ -484,7 +486,7 @@ parameter:
 
 Use the [#~"doc.*"] namespace for HTML head elements:
 
-#code: """
+#code language=picodoc: """
     #doc.lang: en
     #doc.body class=dark-theme
     #doc.meta name=viewport content="width=device-width, initial-scale=1"
@@ -502,7 +504,7 @@ Use [#~"#doc.toc"] to generate a table of contents from your document's
 headings. It renders a [#~"<ul>"] tree, so wrap it in a container macro
 for placement control:
 
-#code: """
+#code language=picodoc: """
     [#nav id=toc :
       #doc.toc
     ]
@@ -515,7 +517,7 @@ for placement control:
 By default, headings up to level 3 are included. Use the [#~"level"]
 parameter to control depth:
 
-#code: """
+#code language=picodoc: """
     [#nav id=toc :
       #doc.toc level=2
     ]
@@ -537,7 +539,7 @@ three sources:
 
 #p: [#b : Config file] ([#~"picodoc.toml"]):
 
-#code: """
+#code language=toml: """
     [env]
     mode = "draft"
     author = "Alice"
@@ -545,7 +547,7 @@ three sources:
 
 #p: [#b : Document-level \#set]:
 
-#code: """
+#code language=picodoc: """
     [#set name=env.mode : draft]
     """
 
@@ -553,7 +555,7 @@ Document-level definitions have the highest precedence, then CLI, then config.
 
 Access environment values as zero-argument macros:
 
-#code: """
+#code language=picodoc: """
     [#ifset name=env.author : Written by [#env.author].]
     """
 
@@ -591,7 +593,7 @@ Access environment values as zero-argument macros:
 Place a [#~"picodoc.toml"] next to your input file. CLI flags override
 config values.
 
-#code: """
+#code language=toml: """
     [env]
     author = "Jane Doe"
 

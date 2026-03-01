@@ -11,6 +11,8 @@
 #doc.script src=style/tocbot.min.js
 #//: #doc.script type=text/javascript: [#include literal=true: style/init.js]
 #doc.script src=style/init.js
+#doc.script src=style/prism.min.js
+#doc.script src=style/prism-picodoc.js
 
 #doc.body class=toc-sidebar
 #nav id=nav: [#include literal=true: style/nav.html]
@@ -99,7 +101,7 @@ Three forms are available:
   [#* : [#b : Paragraph body] (colon + following paragraph):]
 ]
 
-#code: """
+#code language=picodoc: """
     #//: This text will not appear.
 
     [#// : Multi-line comments
@@ -130,7 +132,7 @@ After the identifier, the parser examines the next token:
     Remaining text on the line is prose.]
 ]
 
-#code: """
+#code language=picodoc: """
     #doc.title: Document Title
     #-: Visible Heading
     #hr
@@ -143,7 +145,7 @@ the remaining text on the line is prose. After a colon body (to end of line) or
 a string literal body, the call is also complete and any remaining text is
 prose.
 
-#code: """
+#code language=picodoc: """
     #code language=python : print("hello")
     #doc.meta name=viewport content="width=device-width"
     """
@@ -155,7 +157,7 @@ arguments may appear as name=value pairs separated by whitespace. A colon or
 string literal introduces body content. Everything until the matching closing
 bracket is body, which may span multiple lines and paragraphs.
 
-#code: """"
+#code language=picodoc: """"
     [#b : bold text]
     [#link to="https://example.com" : Click here]
     [#code language=python : """
@@ -191,7 +193,7 @@ Body content is introduced by a colon or by a string literal:
 
 #p: [#b : Colon, inline body]: text follows the colon on the same line.
 
-#code: """
+#code language=picodoc: """
     #-: Document Heading
     """
 
@@ -199,7 +201,7 @@ Body content is introduced by a colon or by a string literal:
 nothing follows the colon on the line. The next paragraph (contiguous non-blank
 lines) becomes the body.
 
-#code: """
+#code language=picodoc: """
     #p:
     This paragraph spans
     multiple lines.
@@ -208,7 +210,7 @@ lines) becomes the body.
 #p: [#b : String literal body]: 
 a string literal serves as body. A colon before the string is optional.
 
-#code: """"
+#code language=picodoc: """"
     #p"A string literal paragraph."
     #**"bold text"
     [#code language=python """
@@ -221,7 +223,7 @@ a string literal serves as body. A colon before the string is optional.
 in bracketed calls, body extends to the closing bracket and may span multiple
 lines and paragraphs.
 
-#code: """
+#code language=picodoc: """
     [#ul :
       #*: First item
       #*: Second item
@@ -238,7 +240,7 @@ If no colon and no string literal is present, the macro call has no body.
 Delimited by a single double quote on each end. Escape sequences are processed
 but macro calls are NOT automatically scanned for.
 
-#code: """
+#code language=picodoc: """
     "A simple string."
     "Contains a tab:\there."
     "Contains a newline:\nSecond line."
@@ -249,7 +251,7 @@ To embed macro calls within an interpreted string, use [#~"\\["] to enter
 code mode. Code mode ends at the matching closing \]. Normal bracketed macro
 call syntax applies inside [#~"\\[...\\]"].
 
-#code: """
+#code language=picodoc: """
     "Hello, \[#name]!"
     "Dear \[#target], welcome to \[#place]."
     """
@@ -260,7 +262,7 @@ Delimited by three or more double quote characters. The closing delimiter must
 have exactly the same number of quotes as the opening. Contents are completely
 opaque (no escapes, no macro processing).
 
-#code: """""
+#code language=picodoc: """""
     """This is raw: \n is literal and #name is not expanded."""
     """"Contains """ three quotes inside.""""
     """""
@@ -287,7 +289,7 @@ Both interpreted and raw strings apply the same whitespace rules:
 This allows indenting string content to match the surrounding markup without
 affecting the result:
 
-#code: """
+#code language=picodoc: """
     [#code language=python : """
         def hello():
             print("world")
@@ -314,7 +316,7 @@ PicoDoc has 42 builtin macros in 8 categories, plus 11 aliases.
 Alias: \#-. Top-level heading. Renders as [#~"<h1>"] in the document body.
 Takes body, no parameters.
 
-#code: """
+#code language=picodoc: """
     #h1: Main Heading
     #-: Alias form
     """
@@ -349,7 +351,7 @@ parameters.
 Paragraph. Renders as [#~"<p>"]. Takes body, no parameters. Bare text
 paragraphs (not inside a macro call) are implicitly wrapped in \#p.
 
-#code: """
+#code language=picodoc: """
     #p: An explicit paragraph.
 
     This bare text is also a paragraph.
@@ -366,7 +368,7 @@ Horizontal rule. Renders as [#~"<hr>"]. No parameters, no body.
 Alias: \#**. Bold text. Renders as [#~"<strong>"]. Takes body, no
 parameters.
 
-#code: """
+#code language=picodoc: """
     This is #**"bold" text.
     This is [#b : also bold] text.
     """
@@ -376,7 +378,7 @@ parameters.
 Alias: \#__. Italic text. Renders as [#~"<em>"]. Takes body, no
 parameters.
 
-#code: """
+#code language=picodoc: """
     This is #__"italic" text.
     This is [#i : also italic] text.
     """
@@ -406,7 +408,7 @@ For fragment references, two additional rules apply:
     document. A broken internal link is a render error.]
 ]
 
-#code: """
+#code language=picodoc: """
     [#link to="https://example.com" : Click here]
     [#> to="https://example.com" : Alias form]
     [#link to=section1 : Jump to section]
@@ -427,7 +429,7 @@ Block code. Renders as [#~ : <pre><code>]. Parameters:
 Takes body. Always renders as a block [#~ : <pre><code>] element regardless
 of body type. For inline code, use \#~ instead.
 
-#code: """"
+#code language=picodoc: """"
     [#code language=python : """
         def hello():
             print("world")
@@ -445,7 +447,7 @@ Inline code. Renders as [#~ : <code>]. Parameters:
 Takes body. Always renders as an inline [#~ : <code>] element regardless
 of body type. For block code, use \#code instead.
 
-#code: """
+#code language=picodoc: """
     Use the [#~ : print()] function to output text.
     The [#~ language=python : def] keyword starts a function.
     """
@@ -456,7 +458,7 @@ Prevents re-expansion of its body. Any macro calls or escapes within the body
 are passed through as literal text. Useful for documenting PicoDoc syntax or
 for output from external filters. Takes body, no parameters.
 
-#code: """"
+#code language=picodoc: """"
     #literal"""
     The #b macro makes text bold.
     Use [#link to="..." : text] for links.
@@ -480,7 +482,7 @@ contain only \#* (list item) elements.
 Alias: \#li. List item. Renders as [#~"<li>"]. Takes body, no parameters.
 Must appear inside \#ul or \#ol.
 
-#code: """
+#code language=picodoc: """
     [#ul :
       #*: First item
       #*: Second with #**"bold"
@@ -508,7 +510,7 @@ Supports two forms:
 #p: [#b : Pipe-delimited form]: the body is parsed as pipe-separated rows.
 The first row becomes headers (\#th), subsequent rows become data (\#td).
 
-#code: """
+#code language=picodoc: """
     #table:
       Name | Age | Status
       Alice | 30 | Active
@@ -518,7 +520,7 @@ The first row becomes headers (\#th), subsequent rows become data (\#td).
 #p: [#b : Explicit form]: the body contains \#tr, \#th, and \#td calls
 directly.
 
-#code: """
+#code language=picodoc: """
     [#table :
       [#tr : [#th: Name] [#th: Age]]
       [#tr : [#td: Alice] [#td: 30]]
@@ -544,7 +546,7 @@ Takes body.
 Table header cell. Renders as [#~"<th>"]. Same parameters as \#td. Takes
 body.
 
-#code: """
+#code language=picodoc: """
     [#table :
       [#tr : [#th: Name] [#th: Age]]
       [#tr : [#td: Alice] [#td: 30]]
@@ -574,7 +576,7 @@ Block wrappers render their body children on separate lines within the
 opening and closing tags. The \#span macro is inline and renders its body
 without added newlines.
 
-#code: """
+#code language=picodoc: """
     [#div class=container :
       #-: Welcome
       #p: This content is inside a div.
@@ -602,7 +604,7 @@ elements in the HTML [#~"<head>"] section, not in [#~"<body>"].
 Sets the document [#~"<title>"] in the HTML [#~"<head>"] section. Does
 not produce any output in [#~"<body>"]. Takes body, no parameters.
 
-#code: """
+#code language=picodoc: """
     #doc.title: My Document
     """
 
@@ -611,7 +613,7 @@ not produce any output in [#~"<body>"]. Takes body, no parameters.
 Sets the lang attribute on the HTML [#~"<html>"] element. Takes body (the
 language code), no parameters.
 
-#code: """
+#code language=picodoc: """
     #doc.lang: en
     """
 
@@ -627,7 +629,7 @@ Adds a [#~"<meta>"] tag to the document head. Parameters:
 
 No body.
 
-#code: """
+#code language=picodoc: """
     #doc.meta name=viewport content="width=device-width, initial-scale=1"
     #doc.meta property="og:title" content="PicoDoc Reference"
     """
@@ -646,7 +648,7 @@ Adds a [#~"<link>"] tag to the document head. Parameters:
 No body. The optional [#~"type"] and [#~"sizes"] attributes are only
 included in the output when non-empty.
 
-#code: """
+#code language=picodoc: """
     #doc.link rel=stylesheet href="style.css"
     #doc.link rel=icon href="icon.png" type="image/png" sizes="32x32"
     """
@@ -663,7 +665,7 @@ Adds a [#~"<script>"] element. Parameters:
 Takes optional body (inline script content). Use either the src parameter or
 body, not both.
 
-#code: """
+#code language=picodoc: """
     #doc.script src="app.js"
     #doc.script type=text/javascript src="app.js"
     [#doc.script : """
@@ -676,7 +678,7 @@ body, not both.
 Convenience macro. Renders as [#~"<meta name=\"author\" content=\"...\">"].
 Takes body (the author name), no parameters.
 
-#code: """
+#code language=picodoc: """
     #doc.author: Jane Doe
     """
 
@@ -685,7 +687,7 @@ Takes body (the author name), no parameters.
 Convenience macro. Renders as [#~"<meta name=\"version\" content=\"...\">"].
 Takes body (the version string), no parameters.
 
-#code: """
+#code language=picodoc: """
     #doc.version: 2.0
     """
 
@@ -694,7 +696,7 @@ Takes body (the version string), no parameters.
 Convenience macro. Renders as [#~"<meta name=\"datecreated\" content=\"...\">"].
 Takes body (the date string), no parameters.
 
-#code: """
+#code language=picodoc: """
     #doc.datecreated: 2025-01-01
     """
 
@@ -703,7 +705,7 @@ Takes body (the date string), no parameters.
 Convenience macro. Renders as [#~"<meta name=\"datemodified\" content=\"...\">"].
 Takes body (the date string), no parameters.
 
-#code: """
+#code language=picodoc: """
     #doc.datemodified: 2025-06-15
     """
 
@@ -718,7 +720,7 @@ Sets attributes on the [#~"<body>"] element. Parameters:
 
 No body. This is a document-level directive; it does not render as content.
 
-#code: """
+#code language=picodoc: """
     #doc.body class=dark-theme id=app
     """
 
@@ -746,7 +748,7 @@ headings, lists, tables, etc.) are collected and wrapped in a single element
 of the specified type. The wrapper is placed at the position of the first
 loose item, preserving source order.
 
-#code: """
+#code language=picodoc: """
     #doc.content type=main class=content
 
     [#header : #-: My Site]
@@ -775,7 +777,7 @@ No body. Renders as a [#~"<ul>"] tree with nested [#~"<a>"] links
 pointing to heading IDs. Wrap it in a container macro for placement
 control:
 
-#code: """
+#code language=picodoc: """
     [#nav id=toc class=sidebar-toc :
       #doc.toc level=3
     ]
@@ -788,7 +790,7 @@ hyphens, and strips leading/trailing hyphens. Duplicate heading texts produce
 unique IDs by appending [#~"-2"], [#~"-3"], etc. Heading IDs are always
 generated, even without \#doc.toc, enabling deep linking.
 
-#code: """
+#code language=picodoc: """
     #-: Introduction
     #--: Getting Started
     #--: Installation
@@ -796,7 +798,7 @@ generated, even without \#doc.toc, enabling deep linking.
 
 The TOC for these headings produces:
 
-#code: """
+#code language=html: """
     <ul>
     <li><a href="#introduction">Introduction</a>
     <ul>
@@ -811,7 +813,7 @@ The TOC for these headings produces:
 
 Composed with a wrapper:
 
-#code: """
+#code language=picodoc: """
     [#nav id=toc class=sidebar-toc :
       #doc.toc level=3
     ]
@@ -819,7 +821,7 @@ Composed with a wrapper:
 
 This produces:
 
-#code: """
+#code language=html: """
     <nav id="toc" class="sidebar-toc">
     <ul>
     ...
@@ -841,7 +843,7 @@ Headings beyond the configured level render without numbers. Parameters:
 
 No body.
 
-#code: """
+#code language=picodoc: """
     #doc.heading.number level=3
 
     #-: Introduction
@@ -853,7 +855,7 @@ No body.
 
 This produces:
 
-#code: """
+#code language=html: """
     <h1 id="introduction">Introduction</h1>
     <h2 id="background">1. Background</h2>
     <h3 id="details">1.1. Details</h3>
@@ -873,7 +875,7 @@ headings up to the configured level receive anchors. Parameters:
 
 No body.
 
-#code: """
+#code language=picodoc: """
     #doc.heading.anchor level=3
     #doc.heading.number
 
@@ -883,7 +885,7 @@ No body.
 
 This produces:
 
-#code: """
+#code language=html: """
     <h1 id="introduction"><a href="#introduction">Introduction</a></h1>
     <h2 id="background"><a href="#background">1. Background</a></h2>
     """
@@ -943,7 +945,7 @@ appeared at the call site. Parameters:
 Takes body (the filename). Forward slashes are used as path separators on all
 platforms. Backslashes in the filename are normalized to forward slashes.
 
-#code: """
+#code language=picodoc: """
     [#include : header.pdoc]
     #include: footer.pdoc
     [#include literal=true : code.js]
@@ -978,7 +980,7 @@ All 11 aliases mapped to their canonical names:
 The \#set macro defines a new macro. It must always appear in bracketed form
 and at the top level (not inside macro bodies).
 
-#code: """
+#code language=picodoc: """
     [#set name=version : 1.0]
     [#set name=greeting target=? body=? : Dear #target, #body Kind regards.]
     [#set name=box style=default body=? : [#p : (#style) #body]]
@@ -1009,7 +1011,7 @@ during resolution.
 
 User macros are called exactly like builtin macros:
 
-#code: """
+#code language=picodoc: """
     #version
     [#greeting target=World : thank you for your support.]
     [#box style=fancy : Content here.]
@@ -1017,7 +1019,7 @@ User macros are called exactly like builtin macros:
 
 A macro with no arguments is essentially a variable:
 
-#code: """
+#code language=picodoc: """
     [#set name=version : 1.0]
     The version is #version.
     """
@@ -1027,7 +1029,7 @@ A macro with no arguments is essentially a variable:
 Macros may be used before they are defined. The compiler collects all \#set
 definitions in a first pass before resolving and expanding:
 
-#code: """
+#code language=picodoc: """
     #p: The project is #project-name.
     [#set name=project-name : PicoDoc]
     """
@@ -1052,7 +1054,7 @@ Expansion-time builtins (\#set, \#ifeq, \#ifne, \#ifset, \#include,
 \#comment, \#table) cannot be overridden. They are resolved before user macros
 and any attempt to shadow them is silently ignored.
 
-#code: """
+#code language=picodoc: """
     [#set name=p body=? : [#builtin.p : [#b : #body]]]
     #p: Every paragraph is now bold.
     """
@@ -1063,7 +1065,7 @@ Inside a user macro definition (or anywhere else), use \#builtin.name to call
 the original builtin, bypassing the user-defined override. Alias resolution
 applies after the prefix, so [#~"#builtin.**"] resolves to the builtin \#b.
 
-#code: """
+#code language=picodoc: """
     [#set name=code body=? :
       [#div class=code-wrapper :
         [#builtin.code : #body]
@@ -1077,7 +1079,7 @@ applies after the prefix, so [#~"#builtin.**"] resolves to the builtin \#b.
 The \#builtin.* namespace is reserved. Defining a macro whose name starts
 with [#~"builtin."] is an error:
 
-#code: """
+#code language=picodoc: """
     [#set name=builtin.foo : bar]
     [#//: Error: reserved namespace: cannot define 'builtin.foo']
     """
@@ -1090,7 +1092,7 @@ alias resolution), an evaluation error is raised.
 A zero-argument macro (variable) can be passed as an argument value using
 the \#identifier form:
 
-#code: """
+#code language=picodoc: """
     [#set name=site-url : https://example.com]
     [#link to=#site-url : Our site]
     """
@@ -1102,25 +1104,25 @@ comparisons via specialised macros.
 
 The \#ifeq macro returns body if lhs equals rhs:
 
-#code: """
+#code language=picodoc: """
     [#ifeq lhs=#mode rhs=draft : This document is a draft.]
     """
 
 The \#ifne macro returns body if lhs does not equal rhs:
 
-#code: """
+#code language=picodoc: """
     [#ifne lhs=#mode rhs=production : Not yet published.]
     """
 
 The \#ifset macro returns body if the named macro is defined:
 
-#code: """
+#code language=picodoc: """
     [#ifset name=env.author : Written by [#env.author].]
     """
 
 Conditionals can be nested:
 
-#code: """
+#code language=picodoc: """
     [#ifeq lhs=#mode rhs=draft :
       [#ifset name=env.author : Draft by [#env.author].]
     ]
@@ -1132,7 +1134,7 @@ The \#include macro inserts the contents of another file at the call site. The
 filename is provided as the body. The included file is parsed and expanded as
 if it appeared inline.
 
-#code: """
+#code language=picodoc: """
     [#include : header.pdoc]
 
     #h2: Main Content
@@ -1147,7 +1149,7 @@ multiple documents.
 
 To include a file as raw text without parsing (e.g. source code), use the [#~"literal"] parameter:
 
-#code: """
+#code language=picodoc: """
     [#include literal=true : code.js]
     """
 
@@ -1175,7 +1177,7 @@ has final say.
 
 Environment values are accessed as zero-argument macros:
 
-#code: """
+#code language=picodoc: """
     #env.mode
     [#env.author]
     """
@@ -1199,7 +1201,7 @@ language.
 The filter receives a JSON object on stdin containing all named arguments
 (including body if present) and all env.* values:
 
-#code: """
+#code language=json: """
     {"arg1": "value1", "body": "the body text", "env": {"mode": "draft"}}
     """
 
@@ -1232,7 +1234,7 @@ expansion errors with the filter's stderr included in the error message.
 Place a [#~"picodoc.toml"] next to your input file (or point to one with
 the [#~"--config"] flag). CLI flags override config values.
 
-#code: """
+#code language=toml: """
     [env]
     title = "My Document"
     author = "Jane Doe"
