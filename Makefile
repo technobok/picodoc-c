@@ -4,7 +4,7 @@ LDFLAGS  =
 
 SRC      = src/tokens.c src/strings.c src/errors.c src/lexer.c \
            src/ast.c src/parser.c src/builtins.c src/eval.c src/render.c \
-           lib/bstrlib.c
+           src/filters.c lib/bstrlib.c
 OBJ      = $(SRC:.c=.o)
 
 TEST_SRC = tests/unity.c tests/test_tokens.c tests/test_strings.c \

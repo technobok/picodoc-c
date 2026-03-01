@@ -3,6 +3,7 @@
 
 #include "ast.h"
 #include "errors.h"
+#include "filters.h"
 
 /*
  * Evaluate a parsed document — expand macros, collect definitions,
@@ -15,10 +16,13 @@
  *
  * env is an optional array of "key=value" strings (NULL-terminated values).
  * env_count is the number of entries in env.
+ *
+ * filters is an optional filter registry (NULL to disable external filters).
  */
 int pd_evaluate(PdNode *doc, const char *filename, const char *source,
                 const char *const *env_keys, const char *const *env_vals,
                 int env_count,
+                PdFilterRegistry *filters,
                 PdNode **out, PdError *err);
 
 #endif /* PD_EVAL_H */

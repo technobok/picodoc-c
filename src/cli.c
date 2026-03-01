@@ -2,7 +2,7 @@
  * picodoc CLI — command-line interface for the picodoc document processor.
  *
  * Port of Python cli.py + inject.py + debug.py.
- * Skipped: --config (TOML), --watch, --filter-path, --filter-timeout.
+ * Skipped: --config (TOML), --watch.
  */
 
 #define _POSIX_C_SOURCE 200809L
@@ -11,6 +11,7 @@
 #include "ast.h"
 #include "errors.h"
 #include "eval.h"
+#include "filters.h"
 #include "lexer.h"
 #include "parser.h"
 #include "render.h"
@@ -38,6 +39,9 @@ typedef struct {
     const char **meta_names;    /* dynamic array (realloc) */
     const char **meta_values;   /* dynamic array (realloc) */
     int meta_count;
+    const char **filter_paths;  /* dynamic array (realloc) */
+    int filter_path_count;
+    float filter_timeout;       /* seconds, 0 = default (5.0) */
     bool debug;
 } CliOptions;
 
@@ -52,6 +56,7 @@ static void cli_options_free(CliOptions *opts) {
     free(opts->js_files);
     free(opts->meta_names);
     free(opts->meta_values);
+    free(opts->filter_paths);
 }
 
 /* Append to a growable const char* array. */
@@ -76,6 +81,8 @@ static void print_usage(const char *prog) {
         "  --css FILE                CSS stylesheet to include (repeatable)\n"
         "  --js FILE                 JavaScript file to include (repeatable)\n"
         "  --meta NAME=VALUE         Meta tag to include (repeatable)\n"
+        "  --filter-path DIR         Extra filter search directory (repeatable)\n"
+        "  --filter-timeout SECS     Filter execution timeout (default: 5.0)\n"
         "  --debug                   Dump evaluated AST to stderr\n"
         "  -h, --help                Print this help and exit\n",
         prog);
@@ -160,6 +167,18 @@ static int parse_args(int argc, char **argv, CliOptions *opts) {
             opts->meta_values = realloc(opts->meta_values,
                                         (size_t)opts->meta_count * sizeof(const char *));
             opts->meta_values[opts->meta_count - 1] = content;
+        } else if (strcmp(arg, "--filter-path") == 0) {
+            if (++i >= argc) {
+                fprintf(stderr, "%s: --filter-path requires an argument\n", prog);
+                return -1;
+            }
+            arr_push(&opts->filter_paths, &opts->filter_path_count, argv[i]);
+        } else if (strcmp(arg, "--filter-timeout") == 0) {
+            if (++i >= argc) {
+                fprintf(stderr, "%s: --filter-timeout requires an argument\n", prog);
+                return -1;
+            }
+            opts->filter_timeout = (float)atof(argv[i]);
         } else if (arg[0] == '-') {
             fprintf(stderr, "%s: unknown option '%s'\n", prog, arg);
             return -1;
@@ -484,17 +503,43 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    /* Step 3: Evaluate */
+    /* Step 3: Set up filter registry */
+    PdFilterRegistry filter_reg;
+    PdFilterRegistry *filters = NULL;
+    {
+        /* Get source directory from input file */
+        const char *last_sep = strrchr(opts.input_file, '/');
+        char *src_dir;
+        if (last_sep) {
+            size_t dlen = (size_t)(last_sep - opts.input_file);
+            src_dir = malloc(dlen + 1);
+            memcpy(src_dir, opts.input_file, dlen);
+            src_dir[dlen] = '\0';
+        } else {
+            src_dir = strdup(".");
+        }
+        pd_filter_init(&filter_reg, src_dir);
+        free(src_dir);
+        if (opts.filter_timeout > 0)
+            filter_reg.timeout = opts.filter_timeout;
+        for (int i = 0; i < opts.filter_path_count; i++)
+            pd_filter_add_path(&filter_reg, opts.filter_paths[i]);
+        filters = &filter_reg;
+    }
+
+    /* Step 4: Evaluate */
     PdNode *expanded = NULL;
     rc = pd_evaluate(doc, opts.input_file, source,
                      (const char *const *)opts.env_keys,
                      (const char *const *)opts.env_vals,
                      opts.env_count,
+                     filters,
                      &expanded, &err);
     if (rc < 0) {
         char *fmt = pd_format_error(&err);
         fprintf(stderr, "%s\n", fmt ? fmt : err.message);
         pd_node_free(doc);
+        pd_filter_free(&filter_reg);
         pd_error_free(&err);
         free(source);
         cli_options_free(&opts);
@@ -502,14 +547,14 @@ int main(int argc, char **argv) {
     }
     pd_node_free(doc);
 
-    /* Step 4: Debug dump (before injection, matching Python behavior) */
+    /* Step 5: Debug dump (before injection, matching Python behavior) */
     if (opts.debug)
         dump_ast(expanded);
 
-    /* Step 5: Inject head items (CSS, JS, meta) */
+    /* Step 6: Inject head items (CSS, JS, meta) */
     inject_head_items(expanded, &opts);
 
-    /* Step 6: Render */
+    /* Step 7: Render */
     char *html = NULL;
     rc = pd_render(expanded, source, opts.input_file, &html, &err);
     if (rc < 0) {
@@ -523,7 +568,7 @@ int main(int argc, char **argv) {
     }
     pd_node_free(expanded);
 
-    /* Step 7: Write output */
+    /* Step 8: Write output */
     if (opts.output_file) {
         FILE *f = fopen(opts.output_file, "w");
         if (!f) {
@@ -541,6 +586,7 @@ int main(int argc, char **argv) {
     }
 
     /* Cleanup */
+    pd_filter_free(&filter_reg);
     free(html);
     free(source);
     /* Free heap-allocated env keys and meta names */

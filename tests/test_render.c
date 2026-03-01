@@ -32,7 +32,7 @@ static char *render_ok(const char *input) {
     }
 
     PdNode *expanded = NULL;
-    rc = pd_evaluate(doc, "test.pdoc", input, NULL, NULL, 0, &expanded, &err);
+    rc = pd_evaluate(doc, "test.pdoc", input, NULL, NULL, 0, NULL, &expanded, &err);
     if (rc < 0) {
         char *fmt = pd_format_error(&err);
         pd_node_free(doc);
@@ -74,7 +74,7 @@ static const char *render_err(const char *input, const char *msg_substr) {
     }
 
     PdNode *expanded = NULL;
-    rc = pd_evaluate(doc, "test.pdoc", input, NULL, NULL, 0, &expanded, &err);
+    rc = pd_evaluate(doc, "test.pdoc", input, NULL, NULL, 0, NULL, &expanded, &err);
     if (rc < 0) {
         char *fmt = pd_format_error(&err);
         pd_node_free(doc);

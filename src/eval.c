@@ -37,6 +37,7 @@ typedef struct {
     char **env_keys;        /* stb_ds dynamic array */
     char **env_vals;        /* stb_ds dynamic array */
     int env_count;
+    PdFilterRegistry *filters;  /* NULL if no filters configured */
     PdError *err;
 } EvalContext;
 
@@ -1284,6 +1285,168 @@ static int expand_body_children(PdNode **children, int count,
     return 0;
 }
 
+/* --- JSON string escaping for filters --- */
+
+static void json_escape_append(char **buf, size_t *len, size_t *cap,
+                                const char *s) {
+    for (; *s; s++) {
+        /* Ensure space */
+        if (*len + 8 >= *cap) {
+            *cap = (*len + 8) * 2;
+            *buf = realloc(*buf, *cap);
+        }
+        switch (*s) {
+        case '"':  (*buf)[(*len)++] = '\\'; (*buf)[(*len)++] = '"'; break;
+        case '\\': (*buf)[(*len)++] = '\\'; (*buf)[(*len)++] = '\\'; break;
+        case '\n': (*buf)[(*len)++] = '\\'; (*buf)[(*len)++] = 'n'; break;
+        case '\r': (*buf)[(*len)++] = '\\'; (*buf)[(*len)++] = 'r'; break;
+        case '\t': (*buf)[(*len)++] = '\\'; (*buf)[(*len)++] = 't'; break;
+        default:
+            if ((unsigned char)*s < 0x20) {
+                *len += (size_t)snprintf(*buf + *len, *cap - *len,
+                                         "\\u%04x", (unsigned char)*s);
+            } else {
+                (*buf)[(*len)++] = *s;
+            }
+        }
+    }
+}
+
+static void json_append_raw(char **buf, size_t *len, size_t *cap,
+                             const char *s) {
+    size_t slen = strlen(s);
+    if (*len + slen >= *cap) {
+        *cap = (*len + slen) * 2 + 64;
+        *buf = realloc(*buf, *cap);
+    }
+    memcpy(*buf + *len, s, slen);
+    *len += slen;
+}
+
+/* --- Filter expansion --- */
+
+static int expand_filter(PdNode *node, const char *name,
+                          const char *filter_path,
+                          EvalContext *ctx, NodeArray *out) {
+    /* Build JSON payload: {args..., "body":"...", "env":{...}} */
+    char *json = NULL;
+    size_t jlen = 0, jcap = 0;
+    json_append_raw(&json, &jlen, &jcap, "{");
+
+    /* Named args */
+    int first = 1;
+    for (int i = 0; i < node->as.macro_call.arg_count; i++) {
+        PdNode *arg = node->as.macro_call.args[i];
+        if (arg->type != NODE_NAMED_ARG) continue;
+        if (!first) json_append_raw(&json, &jlen, &jcap, ",");
+        first = 0;
+        json_append_raw(&json, &jlen, &jcap, "\"");
+        json_escape_append(&json, &jlen, &jcap, arg->as.named_arg.name);
+        json_append_raw(&json, &jlen, &jcap, "\":\"");
+        char val_text[1024];
+        resolve_value(arg->as.named_arg.value, ctx, val_text, sizeof(val_text));
+        json_escape_append(&json, &jlen, &jcap, val_text);
+        json_append_raw(&json, &jlen, &jcap, "\"");
+    }
+
+    /* Body (optional) */
+    if (node->as.macro_call.body) {
+        char body_buf[4096];
+        extract_body_text(node->as.macro_call.body, body_buf, sizeof(body_buf));
+        if (body_buf[0] != '\0') {
+            if (!first) json_append_raw(&json, &jlen, &jcap, ",");
+            first = 0;
+            json_append_raw(&json, &jlen, &jcap, "\"body\":\"");
+            json_escape_append(&json, &jlen, &jcap, body_buf);
+            json_append_raw(&json, &jlen, &jcap, "\"");
+        }
+    }
+
+    /* Env dict */
+    if (!first) json_append_raw(&json, &jlen, &jcap, ",");
+    json_append_raw(&json, &jlen, &jcap, "\"env\":{");
+    for (int i = 0; i < ctx->env_count; i++) {
+        if (i > 0) json_append_raw(&json, &jlen, &jcap, ",");
+        json_append_raw(&json, &jlen, &jcap, "\"");
+        json_escape_append(&json, &jlen, &jcap, ctx->env_keys[i]);
+        json_append_raw(&json, &jlen, &jcap, "\":\"");
+        json_escape_append(&json, &jlen, &jcap, ctx->env_vals[i]);
+        json_append_raw(&json, &jlen, &jcap, "\"");
+    }
+    json_append_raw(&json, &jlen, &jcap, "}}");
+
+    /* NUL-terminate */
+    json_append_raw(&json, &jlen, &jcap, "");
+
+    /* Invoke filter */
+    char *markup = pd_filter_invoke(ctx->filters, name, filter_path,
+                                     json, node->span, ctx->err);
+    free(json);
+
+    if (!markup) return -1;
+
+    /* Parse filter output */
+    char filter_filename[256];
+    snprintf(filter_filename, sizeof(filter_filename), "<filter:%s>", name);
+
+    TokenArray tokens;
+    PdError parse_err;
+    pd_error_init(&parse_err);
+
+    int rc = pd_tokenize(markup, filter_filename, &tokens, &parse_err);
+    if (rc < 0) {
+        free(markup);
+        ctx->err->kind = parse_err.kind;
+        ctx->err->message = parse_err.message;
+        ctx->err->span = node->span;
+        ctx->err->source = ctx->source;
+        ctx->err->filename = ctx->filename;
+        return -1;
+    }
+
+    PdNode *filter_doc = NULL;
+    rc = pd_parse(&tokens, markup, filter_filename, &filter_doc, &parse_err);
+    token_array_free(&tokens);
+    if (rc < 0) {
+        free(markup);
+        ctx->err->kind = parse_err.kind;
+        ctx->err->message = parse_err.message;
+        ctx->err->span = node->span;
+        ctx->err->source = ctx->source;
+        ctx->err->filename = ctx->filename;
+        return -1;
+    }
+
+    /* Re-expand the parsed output */
+    for (int i = 0; i < filter_doc->as.document.count && rc == 0; i++) {
+        PdNode *child = filter_doc->as.document.children[i];
+        if (child->type == NODE_PARAGRAPH) {
+            NodeArray para_expanded;
+            node_array_init(&para_expanded);
+            rc = expand_body_children(child->as.paragraph.children,
+                                      child->as.paragraph.count,
+                                      ctx, &para_expanded);
+            if (rc == 0) {
+                PdNode *p_body = pd_node_body(para_expanded.items,
+                                              para_expanded.count,
+                                              child->span);
+                PdNode *p_call = pd_node_macro_call("p", 1, NULL, 0,
+                                                    p_body, false, child->span);
+                node_array_push(out, p_call);
+            } else {
+                node_array_free_deep(&para_expanded);
+            }
+        } else if (child->type == NODE_MACRO_CALL) {
+            rc = expand_macro(child, ctx, out);
+        }
+    }
+
+    /* Accept leak of filter_doc/markup (same pattern as include) */
+    (void)filter_doc;
+
+    return rc;
+}
+
 /* --- Core macro expansion dispatcher --- */
 
 static int expand_macro(PdNode *node, EvalContext *ctx, NodeArray *out) {
@@ -1332,6 +1495,16 @@ static int expand_macro(PdNode *node, EvalContext *ctx, NodeArray *out) {
         const BuiltinDef *bdef = find_builtin(name);
         if (didx >= 0 && bdef == NULL) {
             return expand_user_macro(node, name, ctx, out);
+        }
+    }
+
+    /* Filter expansion */
+    if (ctx->filters) {
+        char *fpath = pd_filter_find(ctx->filters, name);
+        if (fpath) {
+            int frc = expand_filter(node, name, fpath, ctx, out);
+            free(fpath);
+            return frc;
         }
     }
 
@@ -1568,6 +1741,7 @@ static int expand_top_level(PdNode *doc, EvalContext *ctx, NodeArray *out) {
 int pd_evaluate(PdNode *doc, const char *filename, const char *source,
                 const char *const *env_keys, const char *const *env_vals,
                 int env_count,
+                PdFilterRegistry *filters,
                 PdNode **out, PdError *err) {
     EvalContext ctx;
     memset(&ctx, 0, sizeof(ctx));
@@ -1581,6 +1755,7 @@ int pd_evaluate(PdNode *doc, const char *filename, const char *source,
     ctx.env_keys = NULL;
     ctx.env_vals = NULL;
     ctx.env_count = 0;
+    ctx.filters = filters;
     ctx.err = err;
 
     /* Seed environment */

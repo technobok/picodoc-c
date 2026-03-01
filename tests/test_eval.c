@@ -1,3 +1,6 @@
+#define _POSIX_C_SOURCE 200809L
+#define _DEFAULT_SOURCE
+
 #include "unity.h"
 #include "ast.h"
 #include "builtins.h"
@@ -5,10 +8,12 @@
 #include "eval.h"
 #include "lexer.h"
 #include "parser.h"
+#include "render.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
 
 /* --- Convenience helpers --- */
 
@@ -93,7 +98,7 @@ static PdNode *eval_ok(const char *input) {
     }
 
     PdNode *result = NULL;
-    rc = pd_evaluate(doc, "test.pdoc", input, NULL, NULL, 0, &result, &err);
+    rc = pd_evaluate(doc, "test.pdoc", input, NULL, NULL, 0, NULL, &result, &err);
     if (rc < 0) {
         char *fmt = pd_format_error(&err);
         pd_node_free(doc);
@@ -108,7 +113,7 @@ static PdNode *eval_ast_ok(PdNode *doc) {
     PdError err;
     pd_error_init(&err);
     PdNode *result = NULL;
-    int rc = pd_evaluate(doc, "test.pdoc", "", NULL, NULL, 0, &result, &err);
+    int rc = pd_evaluate(doc, "test.pdoc", "", NULL, NULL, 0, NULL, &result, &err);
     if (rc < 0) {
         char *fmt = pd_format_error(&err);
         pd_node_free(doc);
@@ -126,7 +131,7 @@ static PdNode *eval_ast_env_ok(PdNode *doc,
     pd_error_init(&err);
     PdNode *result = NULL;
     int rc = pd_evaluate(doc, "test.pdoc", "", env_keys, env_vals,
-                         env_count, &result, &err);
+                         env_count, NULL, &result, &err);
     if (rc < 0) {
         char *fmt = pd_format_error(&err);
         pd_node_free(doc);
@@ -144,7 +149,7 @@ static const char *eval_ast_err(PdNode *doc) {
     pd_error_free(&_last_err);
     pd_error_init(&_last_err);
     PdNode *result = NULL;
-    int rc = pd_evaluate(doc, "test.pdoc", "", NULL, NULL, 0, &result, &_last_err);
+    int rc = pd_evaluate(doc, "test.pdoc", "", NULL, NULL, 0, NULL, &result, &_last_err);
     TEST_ASSERT_EQUAL_INT(-1, rc);
     TEST_ASSERT_NULL(result);
     pd_node_free(doc);
@@ -159,7 +164,7 @@ static const char *eval_ast_env_err(PdNode *doc,
     pd_error_init(&_last_err);
     PdNode *result = NULL;
     int rc = pd_evaluate(doc, "test.pdoc", "", env_keys, env_vals,
-                         env_count, &result, &_last_err);
+                         env_count, NULL, &result, &_last_err);
     TEST_ASSERT_EQUAL_INT(-1, rc);
     TEST_ASSERT_NULL(result);
     pd_node_free(doc);
@@ -1450,6 +1455,326 @@ void test_eval_env_duplicate_set_error(void) {
     TEST_ASSERT_NOT_NULL(strstr(msg, "duplicate definition: env.mode"));
 }
 
+/* --- Include test helpers --- */
+
+/* Create a temp directory. Returns heap-allocated path. Caller frees. */
+static char *make_tmpdir(void) {
+    char tmpl[] = "/tmp/picodoc_test_XXXXXX";
+    char *dir = mkdtemp(tmpl);
+    TEST_ASSERT_NOT_NULL_MESSAGE(dir, "mkdtemp failed");
+    return strdup(dir);
+}
+
+/* Write content to a file inside dir. */
+static void write_tmp_file(const char *dir, const char *name,
+                           const char *content) {
+    char path[512];
+    snprintf(path, sizeof(path), "%s/%s", dir, name);
+    FILE *f = fopen(path, "w");
+    TEST_ASSERT_NOT_NULL_MESSAGE(f, "fopen failed for tmp file");
+    fputs(content, f);
+    fclose(f);
+}
+
+/* Tokenize + parse + evaluate from a file on disk. Fail test on error. */
+static PdNode *eval_file_ok(const char *filepath) {
+    FILE *f = fopen(filepath, "r");
+    TEST_ASSERT_NOT_NULL_MESSAGE(f, "cannot open test file");
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    char *source = malloc((size_t)sz + 1);
+    size_t nread = fread(source, 1, (size_t)sz, f);
+    source[nread] = '\0';
+    fclose(f);
+
+    TokenArray tokens;
+    PdError err;
+    pd_error_init(&err);
+
+    int rc = pd_tokenize(source, filepath, &tokens, &err);
+    if (rc < 0) {
+        char *fmt = pd_format_error(&err);
+        free(source);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+
+    PdNode *doc = NULL;
+    rc = pd_parse(&tokens, source, filepath, &doc, &err);
+    token_array_free(&tokens);
+    if (rc < 0) {
+        char *fmt = pd_format_error(&err);
+        free(source);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+
+    PdNode *result = NULL;
+    rc = pd_evaluate(doc, filepath, source, NULL, NULL, 0, NULL, &result, &err);
+    if (rc < 0) {
+        char *fmt = pd_format_error(&err);
+        pd_node_free(doc);
+        free(source);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+    pd_node_free(doc);
+    free(source);
+    return result;
+}
+
+/* Tokenize + parse + evaluate from a file on disk. Expect error. */
+static PdError _last_file_err;
+
+static const char *eval_file_err(const char *filepath) {
+    FILE *f = fopen(filepath, "r");
+    TEST_ASSERT_NOT_NULL_MESSAGE(f, "cannot open test file");
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    char *source = malloc((size_t)sz + 1);
+    size_t nread = fread(source, 1, (size_t)sz, f);
+    source[nread] = '\0';
+    fclose(f);
+
+    TokenArray tokens;
+    PdError err;
+    pd_error_init(&err);
+
+    int rc = pd_tokenize(source, filepath, &tokens, &err);
+    if (rc < 0) {
+        free(source);
+        char *fmt = pd_format_error(&err);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+
+    PdNode *doc = NULL;
+    rc = pd_parse(&tokens, source, filepath, &doc, &err);
+    token_array_free(&tokens);
+    if (rc < 0) {
+        free(source);
+        char *fmt = pd_format_error(&err);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+
+    pd_error_free(&_last_file_err);
+    pd_error_init(&_last_file_err);
+
+    PdNode *result = NULL;
+    rc = pd_evaluate(doc, filepath, source, NULL, NULL, 0, NULL, &result, &_last_file_err);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(-1, rc, "expected eval error");
+    TEST_ASSERT_NULL(result);
+    pd_node_free(doc);
+    free(source);
+    return _last_file_err.message;
+}
+
+/* Render from file: tokenize → parse → evaluate → render. */
+static char *render_file_ok(const char *filepath) {
+    FILE *f = fopen(filepath, "r");
+    TEST_ASSERT_NOT_NULL_MESSAGE(f, "cannot open test file");
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    char *source = malloc((size_t)sz + 1);
+    size_t nread = fread(source, 1, (size_t)sz, f);
+    source[nread] = '\0';
+    fclose(f);
+
+    TokenArray tokens;
+    PdError err;
+    pd_error_init(&err);
+
+    int rc = pd_tokenize(source, filepath, &tokens, &err);
+    if (rc < 0) {
+        free(source);
+        char *fmt = pd_format_error(&err);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+
+    PdNode *doc = NULL;
+    rc = pd_parse(&tokens, source, filepath, &doc, &err);
+    token_array_free(&tokens);
+    if (rc < 0) {
+        free(source);
+        char *fmt = pd_format_error(&err);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+
+    PdNode *expanded = NULL;
+    rc = pd_evaluate(doc, filepath, source, NULL, NULL, 0, NULL, &expanded, &err);
+    if (rc < 0) {
+        char *fmt = pd_format_error(&err);
+        pd_node_free(doc);
+        free(source);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+    pd_node_free(doc);
+
+    char *html = NULL;
+    rc = pd_render(expanded, source, filepath, &html, &err);
+    if (rc < 0) {
+        char *fmt = pd_format_error(&err);
+        pd_node_free(expanded);
+        free(source);
+        TEST_FAIL_MESSAGE(fmt ? fmt : err.message);
+    }
+    pd_node_free(expanded);
+    free(source);
+    return html;
+}
+
+static void rm_rf(const char *dir) {
+    char cmd[600];
+    snprintf(cmd, sizeof(cmd), "rm -rf '%s'", dir);
+    (void)system(cmd);
+}
+
+/* --- Include tests --- */
+
+static void test_eval_include_basic(void) {
+    char *dir = make_tmpdir();
+    write_tmp_file(dir, "part.pdoc", "#p: Included content\n");
+    write_tmp_file(dir, "main.pdoc", "[#include : part.pdoc]\n");
+
+    char path[512];
+    snprintf(path, sizeof(path), "%s/main.pdoc", dir);
+    PdNode *result = eval_file_ok(path);
+
+    TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
+    PdNode *p = result->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, p->type);
+    TEST_ASSERT_EQUAL_STRING("p", p->as.macro_call.name);
+
+    pd_node_free(result);
+    rm_rf(dir);
+    free(dir);
+}
+
+static void test_eval_include_circular(void) {
+    char *dir = make_tmpdir();
+    write_tmp_file(dir, "a.pdoc", "[#include : b.pdoc]\n");
+    write_tmp_file(dir, "b.pdoc", "[#include : a.pdoc]\n");
+
+    char path[512];
+    snprintf(path, sizeof(path), "%s/a.pdoc", dir);
+    const char *msg = eval_file_err(path);
+    TEST_ASSERT_NOT_NULL(msg);
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(msg, "circular include"),
+                                 msg);
+
+    rm_rf(dir);
+    free(dir);
+}
+
+static void test_eval_include_depth_limit(void) {
+    char *dir = make_tmpdir();
+    /* Create chain of 18 includes — exceeds MAX_INCLUDE_DEPTH (16) */
+    for (int i = 0; i < 18; i++) {
+        char name[32], content[64];
+        snprintf(name, sizeof(name), "f%d.pdoc", i);
+        snprintf(content, sizeof(content), "[#include : f%d.pdoc]\n", i + 1);
+        write_tmp_file(dir, name, content);
+    }
+    write_tmp_file(dir, "f18.pdoc", "#p: end\n");
+
+    char path[512];
+    snprintf(path, sizeof(path), "%s/f0.pdoc", dir);
+    const char *msg = eval_file_err(path);
+    TEST_ASSERT_NOT_NULL(msg);
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(msg, "include depth limit"),
+                                 msg);
+
+    rm_rf(dir);
+    free(dir);
+}
+
+static void test_eval_include_missing_file(void) {
+    char *dir = make_tmpdir();
+    write_tmp_file(dir, "main.pdoc", "[#include : missing.pdoc]\n");
+
+    char path[512];
+    snprintf(path, sizeof(path), "%s/main.pdoc", dir);
+    const char *msg = eval_file_err(path);
+    TEST_ASSERT_NOT_NULL(msg);
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(msg, "not found"), msg);
+
+    rm_rf(dir);
+    free(dir);
+}
+
+static void test_eval_include_literal(void) {
+    char *dir = make_tmpdir();
+    write_tmp_file(dir, "code.js", "console.log(\"hello\");\n");
+    write_tmp_file(dir, "main.pdoc",
+                   "#p: [#include literal=true : code.js]\n");
+
+    char path[512];
+    snprintf(path, sizeof(path), "%s/main.pdoc", dir);
+    PdNode *result = eval_file_ok(path);
+
+    TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
+    PdNode *p = result->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, p->type);
+    TEST_ASSERT_EQUAL_STRING("p", p->as.macro_call.name);
+
+    /* Body should contain a #literal MacroCall */
+    PdNode *pbody = p->as.macro_call.body;
+    TEST_ASSERT_NOT_NULL(pbody);
+    TEST_ASSERT_EQUAL_INT(NODE_BODY, pbody->type);
+    TEST_ASSERT_TRUE(pbody->as.body.count >= 1);
+
+    PdNode *lit = pbody->as.body.children[0];
+    TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, lit->type);
+    TEST_ASSERT_EQUAL_STRING("literal", lit->as.macro_call.name);
+
+    /* Literal body should contain the JS content */
+    char buf[256];
+    body_text(lit, buf, sizeof(buf));
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(buf, "console.log"), buf);
+
+    pd_node_free(result);
+    rm_rf(dir);
+    free(dir);
+}
+
+static void test_eval_include_literal_top_level(void) {
+    char *dir = make_tmpdir();
+    write_tmp_file(dir, "nav.html", "<nav>hello</nav>\n");
+    write_tmp_file(dir, "main.pdoc",
+                   "#include literal=true: nav.html\n");
+
+    char path[512];
+    snprintf(path, sizeof(path), "%s/main.pdoc", dir);
+    PdNode *result = eval_file_ok(path);
+
+    /* Top-level literal include should survive as a #literal MacroCall */
+    TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
+    PdNode *lit = result->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, lit->type);
+    TEST_ASSERT_EQUAL_STRING("literal", lit->as.macro_call.name);
+
+    pd_node_free(result);
+    rm_rf(dir);
+    free(dir);
+}
+
+static void test_eval_include_literal_renders(void) {
+    char *dir = make_tmpdir();
+    write_tmp_file(dir, "nav.html", "<nav>hello</nav>\n");
+    write_tmp_file(dir, "main.pdoc",
+                   "#include literal=true: nav.html\n");
+
+    char path[512];
+    snprintf(path, sizeof(path), "%s/main.pdoc", dir);
+    char *html = render_file_ok(path);
+
+    TEST_ASSERT_NOT_NULL_MESSAGE(strstr(html, "<nav>hello</nav>"),
+                                 html);
+
+    free(html);
+    rm_rf(dir);
+    free(dir);
+}
+
 /* --- Test runner --- */
 
 void run_test_eval(void) {
@@ -1545,4 +1870,13 @@ void run_test_eval(void) {
     RUN_TEST(test_eval_e2e_with_set_and_conditional);
     RUN_TEST(test_eval_e2e_user_macro_in_table);
     RUN_TEST(test_eval_e2e_nested_macro_in_conditional);
+
+    /* Include */
+    RUN_TEST(test_eval_include_basic);
+    RUN_TEST(test_eval_include_circular);
+    RUN_TEST(test_eval_include_depth_limit);
+    RUN_TEST(test_eval_include_missing_file);
+    RUN_TEST(test_eval_include_literal);
+    RUN_TEST(test_eval_include_literal_top_level);
+    RUN_TEST(test_eval_include_literal_renders);
 }
