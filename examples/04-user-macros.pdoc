@@ -1,0 +1,37 @@
+#h2: Simple Variable
+
+[#set name=version : 1.0]
+
+#p: The current version is #version.
+
+#h2: Macro With Required Arguments
+
+[#set name=greeting target=? body=? : Dear #target, #body Kind regards.]
+
+#p: [#greeting target=World : thank you for your support.]
+
+#h2: Macro With Default Arguments
+
+[#set name=box style=default body=? : [#p : (#style) #body]]
+
+[#box : This uses the default style.]
+
+[#box style=fancy : This uses a fancy style.]
+
+#h2: Out-of-Order Use
+
+#p: The project name is #project-name.
+
+[#set name=project-name : PicoDoc]
+
+#h2: Macro Reference as Argument Value
+
+[#set name=site-url : https://example.com]
+
+#p: Visit [#link to=#site-url : our site] today.
+
+#h2: String Literal Body on Set
+
+[#set name=motto "Write less, mean more."]
+
+#p: Our motto: #motto

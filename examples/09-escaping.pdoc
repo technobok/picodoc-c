@@ -1,0 +1,33 @@
+#h2: Prose Escapes
+
+#p: A literal hash: \# not a macro.
+
+#p: A literal bracket: \[ not a call.
+
+#p: A literal closing bracket: \] in text.
+
+#p: A literal backslash: \\ stands alone.
+
+#h2: Unicode Escapes in Prose
+
+#p: Copyright symbol: \xA9
+
+#p: Em dash: \U00002014
+
+#h2: String Escapes
+
+#p"A double quote: \" inside a string."
+
+#p"A newline:\nin a string."
+
+#p"A tab:\tin a string."
+
+#p"A backslash: \\ in a string."
+
+#h2: Hex Escape in String
+
+#p"Copyright: \xA9 symbol."
+
+#h2: Raw String Contrast
+
+#p"""Escapes are literal in raw strings: \n \t \\ \# \["""

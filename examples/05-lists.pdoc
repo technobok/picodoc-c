@@ -1,0 +1,43 @@
+#h2: Unordered List
+
+[#ul :
+  #*: First item
+  #*: Second item
+  #*: Third item
+]
+
+#h2: Ordered List
+
+[#ol :
+  #*: Step one
+  #*: Step two
+  #*: Step three
+]
+
+#h2: Nested Lists
+
+[#ul :
+  #*: Top-level item
+  [#* : Item with sublist
+    [#ul :
+      #*: Nested A
+      #*: Nested B
+    ]
+  ]
+  #*: Another top-level item
+]
+
+#h2: List Items with Inline Formatting
+
+[#ul :
+  #*: A #**"bold" item
+  #*: An #__"italic" item
+  #*: A [#link to="https://example.com" : linked] item
+]
+
+#h2: List Item Alias
+
+[#ul :
+  #li: Using the li alias
+  #li: Another li item
+]

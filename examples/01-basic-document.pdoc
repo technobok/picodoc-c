@@ -1,0 +1,28 @@
+#doc.title: Welcome to PicoDoc
+
+#-: Welcome to PicoDoc
+
+#h2: Getting Started
+
+#h3: Installation
+
+#--: Alternate Section Syntax
+
+#---: Alternate Subsection Syntax
+
+#h4: Fine Details
+
+This is a bare paragraph that will be
+implicitly wrapped in a p tag.
+
+This is another bare paragraph.
+
+#hr
+
+#comment: This text will not appear in the output.
+
+#p: An explicit paragraph using the p macro.
+
+#p:
+A paragraph body that spans
+multiple lines using paragraph body form.

@@ -1,0 +1,19 @@
+#doc.lang: en
+
+#doc.meta name=viewport content="width=device-width, initial-scale=1"
+#doc.meta name=description content="A PicoDoc example document"
+#doc.meta property="og:title" content="PicoDoc Meta Example"
+
+#doc.link rel=stylesheet href="style.css"
+
+#doc.script src="app.js"
+
+[#doc.script : """
+    console.log("Hello from PicoDoc");
+    """]
+
+#doc.title: Document Meta Example
+
+#-: Document Meta Example
+
+#p: This document demonstrates doc.meta, doc.link, doc.script, and doc.lang macros.

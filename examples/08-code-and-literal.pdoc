@@ -1,0 +1,29 @@
+#h2: Inline Code
+
+#p: Use the [#~ language=python : print()] function to output text.
+
+#h2: Code Block
+
+[#code language=python : """
+    def hello():
+        print("Hello, world!")
+    """]
+
+#h2: Code Without Language
+
+#p: Just some [#~ : monospace] text.
+
+#h2: Literal Text
+
+#literal"""
+The #b macro makes text bold.
+Use [#link to="..." : text] for links.
+"""
+
+#h2: Code with HTML Special Characters
+
+#p: In HTML, use [#~ : <div class="main">] for containers.
+
+[#code language=html : """
+    <p>x < y & y > z</p>
+    """]

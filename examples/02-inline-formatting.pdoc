@@ -1,0 +1,31 @@
+#h2: Bold Formatting
+
+#p: This has #**"bold" text in it.
+
+#p: This has #b"also bold" text too.
+
+#p: Bracketed bold: [#b : bold text] in a sentence.
+
+#p: Bracketed star form: [#** : also works] like this.
+
+#h2: Italic Formatting
+
+#p: This has #__"italic" text in it.
+
+#p: This has #i"also italic" text too.
+
+#p: Bracketed italic: [#i : italic text] in a sentence.
+
+#h2: Links
+
+#p: Visit [#link to="https://example.com" : Example Site] today.
+
+#h2: Nesting
+
+#p: Here is [#i : [#b : bold inside italic]] text.
+
+#p: Here is [#b : [#i : italic inside bold]] text.
+
+#h2: Mixed Inline
+
+#p: A line with #**"bold" and #__"italic" and [#link to="https://example.com" : a link] together.

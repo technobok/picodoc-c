@@ -1,0 +1,34 @@
+[#set name=version : 1.0]
+
+#h2: Interpreted Strings
+
+#p"A string with a tab:\there."
+
+#p"Line one.\nLine two."
+
+#p"A literal quote: \" inside a string."
+
+#p"A backslash: \\ in a string."
+
+#h2: Code Mode in Strings
+
+#p"Hello, \[#version]!"
+
+#h2: Raw Strings
+
+#p"""This is raw: \n is literal and #version is not expanded."""
+
+#h2: Raw String with 4+ Delimiters
+
+#p""""This contains """ three quotes inside.""""
+
+#h2: Multiline String with Indentation Stripping
+
+#p"""
+    First line of content.
+    Second line of content.
+    """
+
+#h2: Empty String
+
+#p""

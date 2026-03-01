@@ -1,0 +1,29 @@
+#h2: Pipe-Delimited Table
+
+#table:
+  Name | Age | Status
+  Alice | 30 | Active
+  Bob | 25 | Inactive
+
+#h2: Explicit Table Form
+
+[#table :
+  [#tr : [#th: Name] [#th: Age]]
+  [#tr : [#td: Alice] [#td: 30]]
+  [#tr : [#td: Bob] [#td: 25]]
+]
+
+#h2: Table with Inline Macros
+
+#table:
+  Feature | Supported
+  Bold | [#**"Yes"]
+  Links | [#link to="https://example.com" : Yes]
+
+#h2: Table Cell with Colspan
+
+[#table :
+  [#tr : [#th: Name] [#th: Age]]
+  [#tr : [#td: Alice] [#td: 30]]
+  [#tr : [#td span=2 : Total: 1 person]]
+]

@@ -1,0 +1,32 @@
+[#set name=mode : draft]
+[#set name=author : Alice]
+
+#h2: Equality Conditional (True Case)
+
+[#ifeq lhs=#mode rhs=draft : #p: This document is a draft.]
+
+#h2: Equality Conditional (False Case)
+
+[#ifeq lhs=#mode rhs=final : #p: This document is final.]
+
+#h2: Inequality Conditional (True Case)
+
+[#ifne lhs=#mode rhs=final : #p: This document is not final.]
+
+#h2: Inequality Conditional (False Case)
+
+[#ifne lhs=#mode rhs=draft : #p: This document is not a draft.]
+
+#h2: Defined Check (True Case)
+
+[#ifset name=author : #p: Written by #author.]
+
+#h2: Defined Check (False Case)
+
+[#ifset name=editor : #p: Edited by someone.]
+
+#h2: Nested Conditional
+
+[#ifeq lhs=#mode rhs=draft :
+  [#ifset name=author : #p: Draft by #author.]
+]
