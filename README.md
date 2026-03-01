@@ -15,7 +15,7 @@ The documentation is written in PicoDoc.
 ## Status
 
 All components implemented: lexer, parser, AST, builtins, evaluator,
-renderer, CLI, and filters. 364 tests passing.
+renderer, CLI, filters, and LSP server. 364 tests passing.
 
 Documentation (reference and tutorial) builds from `.pdoc` sources in `docs/`.
 
@@ -23,18 +23,62 @@ Documentation (reference and tutorial) builds from `.pdoc` sources in `docs/`.
 
 ```
 make            # build the picodoc binary
+make picodoc-lsp  # build the LSP server
 make test       # build and run the test suite
 make clean      # remove build artifacts
 ```
 
 Requires a C11 compiler (cc).
 
+## LSP server
+
+`picodoc-lsp` is a Language Server Protocol server for PicoDoc, providing
+diagnostics, hover, go-to-definition, and completion in any LSP-capable editor.
+
+Build it with `make picodoc-lsp`.
+
+### Neovim
+
+```lua
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'picodoc',
+  callback = function()
+    vim.lsp.start({
+      name = 'picodoc-lsp',
+      cmd = { '/path/to/picodoc-c/picodoc-lsp' },
+    })
+  end,
+})
+```
+
+### VS Code
+
+Add to `.vscode/settings.json` (requires a generic LSP client extension):
+
+```json
+{
+  "lsp.server.picodoc": {
+    "command": "/path/to/picodoc-c/picodoc-lsp",
+    "filetypes": ["picodoc"]
+  }
+}
+```
+
+### Features
+
+- **Diagnostics**: lex/parse errors (Error severity) and eval errors (Warning)
+  on every save/change.
+- **Hover**: shows builtin info (parameters, aliases, body) or user-defined
+  macro info (parameters, definition location).
+- **Go-to-definition**: jumps to the `#set` that defines a user macro.
+- **Completion**: lists all builtins, aliases, and user-defined macros after `#`.
+
 ## Project structure
 
 ```
 src/        lexer, parser, AST, builtins, evaluator, renderer, CLI, filters,
-            tokens, strings, errors
-lib/        vendored dependencies — bstrlib, utf8.h, stb_ds.h
+            tokens, strings, errors, LSP server
+lib/        vendored dependencies — bstrlib, utf8.h, stb_ds.h, cJSON
 tests/      test suite (Unity framework, also vendored)
 docs/       reference and tutorial (.pdoc sources, style assets, generated HTML)
 examples/   sample .pdoc documents with expected HTML output
@@ -51,6 +95,7 @@ Source files in `src/`:
 | `eval.c` | Multi-pass macro expansion |
 | `render.c` | AST to HTML |
 | `cli.c` | Command-line interface |
+| `lsp.c` | LSP server implementation |
 | `filters.c` | External filter protocol |
 | `tokens.c` | Token types and helpers |
 | `strings.c` | String utilities |
@@ -63,4 +108,5 @@ All vendored in the repo, no external dependencies needed:
 - [bstrlib](https://github.com/websnarf/bstrlib) — better string library
 - [utf8.h](https://github.com/sheredom/utf8.h) — single-header UTF-8 support
 - [stb_ds.h](https://github.com/nothings/stb) — dynamic arrays and hash maps
+- [cJSON](https://github.com/DaveGamble/cJSON) — JSON parser/generator (used by LSP server)
 - [Unity](https://github.com/ThrowTheSwitch/Unity) — C test framework (in `tests/`)
