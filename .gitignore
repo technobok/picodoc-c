@@ -1,3 +1,4 @@
 *.o
 run_tests
 picodoc
+picodoc-lsp

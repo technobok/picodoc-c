@@ -3,11 +3,6 @@
 
 /* --- Alias table --- */
 
-typedef struct {
-    const char *alias;
-    const char *canonical;
-} AliasEntry;
-
 static const AliasEntry ALIASES[] = {
     {"-",      "h1"},
     {"--",     "h2"},
@@ -141,6 +136,11 @@ const BuiltinDef *find_builtin(const char *name) {
     }
     return NULL;
 }
+
+int pd_builtin_count(void) { return BUILTIN_COUNT; }
+const BuiltinDef *pd_builtin_at(int index) { return &BUILTINS[index]; }
+int pd_alias_count(void) { return ALIAS_COUNT; }
+const AliasEntry *pd_alias_at(int index) { return &ALIASES[index]; }
 
 /* --- Tag classification --- */
 

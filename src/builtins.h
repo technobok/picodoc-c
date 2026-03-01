@@ -18,6 +18,18 @@ typedef struct {
     bool expansion_time;   /* true = cannot be shadowed by user macros */
 } BuiltinDef;
 
+/* Alias entry: maps a shorthand to a canonical builtin name. */
+typedef struct {
+    const char *alias;
+    const char *canonical;
+} AliasEntry;
+
+/* Iterate builtins and aliases by index. */
+int pd_builtin_count(void);
+const BuiltinDef *pd_builtin_at(int index);
+int pd_alias_count(void);
+const AliasEntry *pd_alias_at(int index);
+
 /* Resolve heading/formatting aliases: "-" -> "h1", "**" -> "b", etc.
  * Returns the canonical name, or the input name if not an alias. */
 const char *resolve_alias(const char *name);
