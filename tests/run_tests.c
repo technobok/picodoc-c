@@ -9,6 +9,7 @@ extern void run_test_ast(void);
 extern void run_test_parser(void);
 extern void run_test_builtins(void);
 extern void run_test_eval(void);
+extern void run_test_render(void);
 
 void setUp(void) {}
 void tearDown(void) {}
@@ -24,6 +25,7 @@ int main(void) {
     run_test_parser();
     run_test_builtins();
     run_test_eval();
+    run_test_render();
 
     return UNITY_END();
 }

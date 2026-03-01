@@ -89,9 +89,17 @@ void token_array_push(TokenArray *arr, Token tok) {
         int new_cap = arr->capacity == 0 ? 64 : arr->capacity * 2;
         arr->items = realloc(arr->items, (size_t)new_cap * sizeof(Token));
         arr->capacity = new_cap;
+        /* Fix up value pointers for ALL existing tokens after realloc */
+        for (int i = 0; i < arr->count; i++) {
+            if (arr->items[i].value_is_inline) {
+                arr->items[i].value = arr->items[i].value_buf;
+            } else if (arr->items[i].value_heap) {
+                arr->items[i].value = arr->items[i].value_heap;
+            }
+        }
     }
     arr->items[arr->count] = tok;
-    /* Fix up value pointer after copy */
+    /* Fix up value pointer for the newly pushed token */
     if (tok.value_is_inline) {
         arr->items[arr->count].value = arr->items[arr->count].value_buf;
     } else if (tok.value_heap) {

@@ -60,4 +60,10 @@ int pd_parse_error(PdError *err, const char *message, Span span,
 int pd_eval_error(PdError *err, const char *message, Span span,
                   const char *source, const char *filename);
 
+/*
+ * Set a render error. Returns -1 for convenience.
+ */
+int pd_render_error(PdError *err, const char *message, Span span,
+                    const char *source, const char *filename);
+
 #endif /* PD_ERRORS_H */

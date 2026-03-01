@@ -3,13 +3,14 @@ CFLAGS   = -std=c11 -Wall -Wextra -Wpedantic -Ilib -Isrc
 LDFLAGS  =
 
 SRC      = src/tokens.c src/strings.c src/errors.c src/lexer.c \
-           src/ast.c src/parser.c src/builtins.c src/eval.c lib/bstrlib.c
+           src/ast.c src/parser.c src/builtins.c src/eval.c src/render.c \
+           lib/bstrlib.c
 OBJ      = $(SRC:.c=.o)
 
 TEST_SRC = tests/unity.c tests/test_tokens.c tests/test_strings.c \
            tests/test_escapes.c tests/test_lexer.c tests/test_ast.c \
            tests/test_parser.c tests/test_builtins.c tests/test_eval.c \
-           tests/run_tests.c
+           tests/test_render.c tests/run_tests.c
 TEST_OBJ = $(TEST_SRC:.c=.o)
 
 # Core library objects (everything except cli.o)

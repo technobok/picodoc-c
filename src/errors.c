@@ -162,3 +162,13 @@ int pd_eval_error(PdError *err, const char *message, Span span,
     err->filename = filename;
     return -1;
 }
+
+int pd_render_error(PdError *err, const char *message, Span span,
+                    const char *source, const char *filename) {
+    err->kind = PD_ERR_RENDER;
+    err->message = message;
+    err->span = span;
+    err->source = source;
+    err->filename = filename;
+    return -1;
+}
