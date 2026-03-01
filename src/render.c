@@ -1000,7 +1000,7 @@ static int render_toc(RenderState *state) {
         } else if (level > stack[arrlen(stack) - 1]) {
             while (level > stack[arrlen(stack) - 1]) {
                 bcatcstr(state->out, "<ul>\n");
-                int next_level = stack[arrlen(stack) - 2] + 1;
+                int next_level = stack[arrlen(stack) - 1] + 1;
                 arrput(stack, next_level);
             }
         } else if (level < stack[arrlen(stack) - 1]) {
@@ -1509,7 +1509,7 @@ int pd_render(const PdNode *doc, const char *source, const char *filename,
     state.heading_number_level = heading_number_level;
     state.heading_anchor_level = heading_anchor_level;
 
-    collect_headings(doc->as.document.children, doc->as.document.count, &state);
+    collect_headings((PdNode **)final_body, final_body_count, &state);
 
     /* Render output */
     state.out = bfromcstr("");
