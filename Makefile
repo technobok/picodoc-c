@@ -29,7 +29,11 @@ test: $(TEST_OBJ) $(LIB_OBJ)
 tests/%.o: tests/%.c
 	$(CC) $(CFLAGS) -Itests -c -o $@ $<
 
+docs: picodoc
+	$(MAKE) -C docs
+
 clean:
 	rm -f $(OBJ) $(TEST_OBJ) src/cli.o picodoc run_tests
+	$(MAKE) -C docs clean
 
-.PHONY: test clean
+.PHONY: test docs clean

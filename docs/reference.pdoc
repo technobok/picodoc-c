@@ -1,0 +1,1338 @@
+#doc.lang: en
+
+#//: PicoDoc Language Reference
+#//: Authoritative documentation of every language feature.
+
+#doc.title: PicoDoc Language Reference
+#doc.content type=main id=content
+#doc.heading.number level=4
+#doc.heading.anchor level=4
+#doc.link rel=stylesheet href=style/picodoc.css 
+#doc.script src=style/tocbot.min.js
+#//: #doc.script type=text/javascript: [#include literal=true: style/init.js]
+#doc.script src=style/init.js
+
+#doc.body class=toc-sidebar
+#nav id=nav: [#include literal=true: style/nav.html]
+
+#header:
+  #-: PicoDoc Language Reference
+
+#nav id=toc class=toc-sidebar:
+  #div id=tocfile: Table of Contents
+  #doc.toc
+
+#--: Overview
+
+PicoDoc is a macro-based markup language that compiles to HTML. Every construct
+in the language (headings, bold text, links, user-defined templates) is a macro
+call. This regularity means there is only one syntax to learn.
+
+Design principles:
+
+[#ul :
+  [#* : [#b : One abstraction] : macros are the only construct.]
+  [#* : [#b : Named arguments] : all arguments are named, eliminating
+    positional ambiguity.]
+  [#* : [#b : Strict parsing] : invalid input is rejected with clear error
+    messages rather than silently guessed at.]
+  [#* : [#b : UTF-8 only] : no encoding detection or fallback.]
+  [#* : [#b : HTML target] : the primary output format is HTML.]
+]
+
+The file extension is [#~ : .pdoc].
+
+#--: Lexical Structure
+
+#---: Identifiers
+
+An identifier consists of one or more letters, digits, dots, or special
+characters:
+
+[#code : """
+    ! $ % & * + - / < > @ ^ _ ~ |
+    """]
+
+Dots allow namespacing (e.g. [#~ : env.mode], [#~ : doc.lang]). The
+identifier terminates at the first character that is not in the set above, such
+as whitespace, colons, quotes, brackets, equals signs, hash, or backslash.
+
+#---: Escape Sequences
+
+Backslash is the escape prefix. Backslash followed by any character not on the
+valid list for the current context is a syntax error.
+
+#p: [#b : Prose escapes] (in body text and barewords):
+
+#table:
+  Sequence | Produces
+  [#~"\\\\"] | Literal backslash
+  [#~"\\#"] | Literal \#
+  [#~"\\["] | Literal \[
+  [#~"\\]"] | Literal \]
+  [#~"\\xHH"] | Unicode codepoint U+0000 to U+00FF
+  [#~"\\UHHHHHHHH"] | Unicode codepoint (8 hex digits)
+
+#p: [#b : String escapes] (inside interpreted string literals):
+
+#table:
+  Sequence | Produces
+  [#~"\\\\"] | Literal backslash
+  [#~"\\\""] | Literal double quote
+  [#~"\\["] | Enter code mode (macro expansion)
+  [#~"\\n"] | Newline
+  [#~"\\t"] | Tab
+  [#~"\\xHH"] | Unicode codepoint U+0000 to U+00FF
+  [#~"\\UHHHHHHHH"] | Unicode codepoint (8 hex digits)
+
+Note that [#~"\\["] has different meaning in the two contexts: in prose it
+produces a literal \[, while in strings it enters code mode.
+
+#---: Comments
+
+The \#comment macro (alias \#//) removes its body from the output entirely.
+Three forms are available:
+
+[#ol :
+  [#* : [#b : Inline] (colon body to end of line): [#~"#//: This text will not appear."]]
+  [#* : [#b : Bracketed] (multi-line): [#~"[#// : Multi-line comment here.]"]]
+  [#* : [#b : Paragraph body] (colon + following paragraph):]
+]
+
+#code: """
+    #//: This text will not appear.
+
+    [#// : Multi-line comments
+      use the bracketed form.]
+
+    #//:
+    This entire paragraph
+    is a comment.
+    """
+
+#--: Macro Calls
+
+There are two forms of macro call: unbracketed and bracketed. The parser does
+not need to consult macro definitions to parse either form.
+
+#---: Unbracketed Form
+
+A macro call begins with \# followed immediately by the macro identifier.
+After the identifier, the parser examines the next token:
+
+[#ol :
+  [#* : If the token matches [#~"identifier="] (no whitespace before
+    the equals sign), it enters argument mode and consumes name=value pairs.]
+  [#* : If the token is a colon, it enters body mode.]
+  [#* : If the token is a string literal opening, it enters body mode
+    with the string as body.]
+  [#* : Otherwise the call is complete with no arguments and no body.
+    Remaining text on the line is prose.]
+]
+
+#code: """
+    #doc.title: Document Title
+    #-: Visible Heading
+    #hr
+    #p"Explicit paragraph."
+    """
+
+In argument mode, the parser consumes name=value pairs. If the next token is
+not a name=value pair, a colon, or a string literal, the call is complete and
+the remaining text on the line is prose. After a colon body (to end of line) or
+a string literal body, the call is also complete and any remaining text is
+prose.
+
+#code: """
+    #code language=python : print("hello")
+    #doc.meta name=viewport content="width=device-width"
+    """
+
+#---: Bracketed Form
+
+A macro call enclosed in square brackets: \[#identifier ...\]. Named
+arguments may appear as name=value pairs separated by whitespace. A colon or
+string literal introduces body content. Everything until the matching closing
+bracket is body, which may span multiple lines and paragraphs.
+
+#code: """"
+    [#b : bold text]
+    [#link to="https://example.com" : Click here]
+    [#code language=python : """
+        def hello():
+            print("world")
+        """]
+    """"
+
+Bare text inside brackets that is not a name=value pair and not preceded by
+a colon or string literal is a syntax error.
+
+#---: Named Arguments
+
+Named arguments use the syntax [#~"name=value"] with no whitespace before
+the equals sign. Whitespace after the equals sign is permitted.
+
+Argument values can be:
+
+[#ul :
+  [#* : [#b : Bareword] (a simple word with no syntactic characters):
+    [#~"language=python"]]
+  [#* : [#b : String literal] (interpreted or raw):
+    [#~"to=\"https://example.com\""]]
+  [#* : [#b : Macro reference] (a zero-argument macro):
+    [#~"to=#site-url"]]
+  [#* : [#b : Bracketed call] (a macro call in brackets):
+    [#~"style=[#get-style]"]]
+]
+
+#---: The Body Argument
+
+Body content is introduced by a colon or by a string literal:
+
+#p: [#b : Colon, inline body]: text follows the colon on the same line.
+
+#code: """
+    #-: Document Heading
+    """
+
+#p: [#b : Colon, paragraph body]: 
+nothing follows the colon on the line. The next paragraph (contiguous non-blank
+lines) becomes the body.
+
+#code: """
+    #p:
+    This paragraph spans
+    multiple lines.
+    """
+
+#p: [#b : String literal body]: 
+a string literal serves as body. A colon before the string is optional.
+
+#code: """"
+    #p"A string literal paragraph."
+    #**"bold text"
+    [#code language=python """
+        def hello():
+            pass
+        """]
+    """"
+
+#p: [#b : Bracketed body]: 
+in bracketed calls, body extends to the closing bracket and may span multiple
+lines and paragraphs.
+
+#code: """
+    [#ul :
+      #*: First item
+      #*: Second item
+      #*: Third item
+    ]
+    """
+
+If no colon and no string literal is present, the macro call has no body.
+
+#--: String Literals
+
+#---: Interpreted Strings
+
+Delimited by a single double quote on each end. Escape sequences are processed
+but macro calls are NOT automatically scanned for.
+
+#code: """
+    "A simple string."
+    "Contains a tab:\there."
+    "Contains a newline:\nSecond line."
+    "A literal quote: \" inside."
+    """
+
+To embed macro calls within an interpreted string, use [#~"\\["] to enter
+code mode. Code mode ends at the matching closing \]. Normal bracketed macro
+call syntax applies inside [#~"\\[...\\]"].
+
+#code: """
+    "Hello, \[#name]!"
+    "Dear \[#target], welcome to \[#place]."
+    """
+
+#---: Raw Strings
+
+Delimited by three or more double quote characters. The closing delimiter must
+have exactly the same number of quotes as the opening. Contents are completely
+opaque (no escapes, no macro processing).
+
+#code: """""
+    """This is raw: \n is literal and #name is not expanded."""
+    """"Contains """ three quotes inside.""""
+    """""
+
+#---: Empty String
+
+The empty string is always [#~"\"\""] (two double quotes). An empty raw
+string is not possible because the opening quotes run into the closing.
+
+#---: Whitespace Stripping
+
+Both interpreted and raw strings apply the same whitespace rules:
+
+[#ol :
+  [#* : If the remainder of the opening delimiter's line is blank (whitespace
+    only), that remainder is discarded.]
+  [#* : If the beginning of the closing delimiter's line is blank (whitespace
+    only), that whitespace is discarded.]
+  [#* : If the closing delimiter's leading whitespace appears identically on
+    ALL other lines of the string, that common prefix is stripped from every
+    line (indentation stripping).]
+]
+
+This allows indenting string content to match the surrounding markup without
+affecting the result:
+
+#code: """
+    [#code language=python : """
+        def hello():
+            print("world")
+        """]
+    """
+
+The four spaces before [#~"def"] and [#~"print"] are stripped because
+they match the indentation of the closing delimiter.
+
+#---: Adjacent String Restriction
+
+After a string literal closes, the next character must not be a double quote.
+At least one non-quote character must separate consecutive string literals.
+This prevents a mismatched quote from silently cascading through the file.
+
+#--: Builtin Macros
+
+PicoDoc has 42 builtin macros in 8 categories, plus 11 aliases.
+
+#---: Structural Macros
+
+#----: \#h1
+
+Alias: \#-. Top-level heading. Renders as [#~"<h1>"] in the document body.
+Takes body, no parameters.
+
+#code: """
+    #h1: Main Heading
+    #-: Alias form
+    """
+
+#----: \#h2
+
+Alias: \#--. Section heading. Renders as [#~"<h2>"]. Takes body, no
+parameters.
+
+#----: \#h3
+
+Alias: \#---. Subsection heading. Renders as [#~"<h3>"]. Takes body, no
+parameters.
+
+#----: \#h4
+
+Alias: \#----. Lower-level heading. Renders as [#~"<h4>"]. Takes body, no
+parameters.
+
+#----: \#h5
+
+Alias: \#-----. Lower-level heading. Renders as [#~"<h5>"]. Takes body, no
+parameters.
+
+#----: \#h6
+
+Alias: \#------. Lower-level heading. Renders as [#~"<h6>"]. Takes body, no
+parameters.
+
+#----: \#p
+
+Paragraph. Renders as [#~"<p>"]. Takes body, no parameters. Bare text
+paragraphs (not inside a macro call) are implicitly wrapped in \#p.
+
+#code: """
+    #p: An explicit paragraph.
+
+    This bare text is also a paragraph.
+    """
+
+#----: \#hr
+
+Horizontal rule. Renders as [#~"<hr>"]. No parameters, no body.
+
+#---: Inline Macros
+
+#----: \#b
+
+Alias: \#**. Bold text. Renders as [#~"<strong>"]. Takes body, no
+parameters.
+
+#code: """
+    This is #**"bold" text.
+    This is [#b : also bold] text.
+    """
+
+#----: \#i
+
+Alias: \#__. Italic text. Renders as [#~"<em>"]. Takes body, no
+parameters.
+
+#code: """
+    This is #__"italic" text.
+    This is [#i : also italic] text.
+    """
+
+#----: \#link
+
+Alias: \#>. Hyperlink. Renders as [#~"<a>"]. Parameters:
+
+#table:
+  Parameter | Required | Description
+  to | Yes | Link target (URL, path, or fragment name)
+
+Takes optional body (the link text). For external links, if no body is
+provided the [#~ : to] value is used as the link text.
+
+Fragment reference behavior: if [#~ : to] does not contain [#~"://"]
+and does not contain [#~"/"], it is treated as a fragment reference and
+\# is prepended (e.g. [#~"to=section1"] produces [#~"href=\"#section1\""]).
+
+For fragment references, two additional rules apply:
+
+[#ul :
+  [#* : [#b : Auto-text] : if no body is provided, the link text defaults
+    to the heading text of the target anchor. The text is always the plain
+    heading text without section numbers.]
+  [#* : [#b : Validation] : the target must match a heading anchor in the
+    document. A broken internal link is a render error.]
+]
+
+#code: """
+    [#link to="https://example.com" : Click here]
+    [#> to="https://example.com" : Alias form]
+    [#link to=section1 : Jump to section]
+    [#link to=section1]
+    [#link to=page/about : About page]
+    """
+
+#---: Code and Literal Macros
+
+#----: \#code
+
+Block code. Renders as [#~ : <pre><code>]. Parameters:
+
+#table:
+  Parameter | Required | Description
+  language | No | Programming language for syntax class
+
+Takes body. Always renders as a block [#~ : <pre><code>] element regardless
+of body type. For inline code, use \#~ instead.
+
+#code: """"
+    [#code language=python : """
+        def hello():
+            print("world")
+        """]
+    """"
+
+#----: \#~
+
+Inline code. Renders as [#~ : <code>]. Parameters:
+
+#table:
+  Parameter | Required | Description
+  language | No | Programming language for syntax class
+
+Takes body. Always renders as an inline [#~ : <code>] element regardless
+of body type. For block code, use \#code instead.
+
+#code: """
+    Use the [#~ : print()] function to output text.
+    The [#~ language=python : def] keyword starts a function.
+    """
+
+#----: \#literal
+
+Prevents re-expansion of its body. Any macro calls or escapes within the body
+are passed through as literal text. Useful for documenting PicoDoc syntax or
+for output from external filters. Takes body, no parameters.
+
+#code: """"
+    #literal"""
+    The #b macro makes text bold.
+    Use [#link to="..." : text] for links.
+    """
+    """"
+
+#---: List Macros
+
+#----: \#ul
+
+Unordered list. Renders as [#~"<ul>"]. Takes body, no parameters. Body must
+contain only \#* (list item) elements.
+
+#----: \#ol
+
+Ordered list. Renders as [#~"<ol>"]. Takes body, no parameters. Body must
+contain only \#* (list item) elements.
+
+#----: \#*
+
+Alias: \#li. List item. Renders as [#~"<li>"]. Takes body, no parameters.
+Must appear inside \#ul or \#ol.
+
+#code: """
+    [#ul :
+      #*: First item
+      #*: Second with #**"bold"
+      [#* : Third with a sublist
+        [#ul :
+          #*: Nested A
+          #*: Nested B
+        ]
+      ]
+    ]
+
+    [#ol :
+      #*: Step one
+      #*: Step two
+    ]
+    """
+
+#---: Table Macros
+
+#----: \#table
+
+Table container. Renders as [#~"<table>"]. Takes body, no parameters.
+Supports two forms:
+
+#p: [#b : Pipe-delimited form]: the body is parsed as pipe-separated rows.
+The first row becomes headers (\#th), subsequent rows become data (\#td).
+
+#code: """
+    #table:
+      Name | Age | Status
+      Alice | 30 | Active
+      Bob | 25 | Inactive
+    """
+
+#p: [#b : Explicit form]: the body contains \#tr, \#th, and \#td calls
+directly.
+
+#code: """
+    [#table :
+      [#tr : [#th: Name] [#th: Age]]
+      [#tr : [#td: Alice] [#td: 30]]
+    ]
+    """
+
+#----: \#tr
+
+Table row. Renders as [#~"<tr>"]. Takes body, no parameters.
+
+#----: \#td
+
+Table data cell. Renders as [#~"<td>"]. Parameters:
+
+#table:
+  Parameter | Required | Description
+  span | No | Column span (colspan attribute)
+
+Takes body.
+
+#----: \#th
+
+Table header cell. Renders as [#~"<th>"]. Same parameters as \#td. Takes
+body.
+
+#code: """
+    [#table :
+      [#tr : [#th: Name] [#th: Age]]
+      [#tr : [#td: Alice] [#td: 30]]
+      [#tr : [#td span=2 : Total: 1 person]]
+    ]
+    """
+
+#---: Wrapper / Container Macros
+
+PicoDoc provides 9 wrapper macros for grouping content in HTML container
+elements. All wrapper macros accept optional [#~"class"] and [#~"id"]
+parameters and take a body.
+
+#table:
+  Macro | HTML element | Display
+  \#div | [#~"<div>"] | Block
+  \#section | [#~"<section>"] | Block
+  \#nav | [#~"<nav>"] | Block
+  \#header | [#~"<header>"] | Block
+  \#footer | [#~"<footer>"] | Block
+  \#main | [#~"<main>"] | Block
+  \#article | [#~"<article>"] | Block
+  \#aside | [#~"<aside>"] | Block
+  \#span | [#~"<span>"] | Inline
+
+Block wrappers render their body children on separate lines within the
+opening and closing tags. The \#span macro is inline and renders its body
+without added newlines.
+
+#code: """
+    [#div class=container :
+      #-: Welcome
+      #p: This content is inside a div.
+    ]
+
+    #p: Text with [#span class=highlight : highlighted words] inside.
+
+    [#section class=sidebar id=nav :
+      [#nav :
+        [#ul :
+          #*: [#link to=page1 : Page 1]
+          #*: [#link to=page2 : Page 2]
+        ]
+      ]
+    ]
+    """
+
+#---: Document Macros (doc.* Namespace)
+
+All document-level macros live under the [#~"doc.*"] namespace. They produce
+elements in the HTML [#~"<head>"] section, not in [#~"<body>"].
+
+#----: \#doc.title
+
+Sets the document [#~"<title>"] in the HTML [#~"<head>"] section. Does
+not produce any output in [#~"<body>"]. Takes body, no parameters.
+
+#code: """
+    #doc.title: My Document
+    """
+
+#----: \#doc.lang
+
+Sets the lang attribute on the HTML [#~"<html>"] element. Takes body (the
+language code), no parameters.
+
+#code: """
+    #doc.lang: en
+    """
+
+#----: \#doc.meta
+
+Adds a [#~"<meta>"] tag to the document head. Parameters:
+
+#table:
+  Parameter | Required | Description
+  name | No | Meta name attribute
+  property | No | Meta property attribute (e.g. Open Graph)
+  content | Yes | Meta content value
+
+No body.
+
+#code: """
+    #doc.meta name=viewport content="width=device-width, initial-scale=1"
+    #doc.meta property="og:title" content="PicoDoc Reference"
+    """
+
+#----: \#doc.link
+
+Adds a [#~"<link>"] tag to the document head. Parameters:
+
+#table:
+  Parameter | Required | Description
+  rel | Yes | Relationship (e.g. stylesheet)
+  href | Yes | URL of the linked resource
+  type | No | MIME type (e.g. image/png)
+  sizes | No | Icon sizes (e.g. 32x32)
+
+No body. The optional [#~"type"] and [#~"sizes"] attributes are only
+included in the output when non-empty.
+
+#code: """
+    #doc.link rel=stylesheet href="style.css"
+    #doc.link rel=icon href="icon.png" type="image/png" sizes="32x32"
+    """
+
+#----: \#doc.script
+
+Adds a [#~"<script>"] element. Parameters:
+
+#table:
+  Parameter | Required | Description
+  src | No | URL of external script
+  type | No | Script type (e.g. text/javascript)
+
+Takes optional body (inline script content). Use either the src parameter or
+body, not both.
+
+#code: """
+    #doc.script src="app.js"
+    #doc.script type=text/javascript src="app.js"
+    [#doc.script : """
+        console.log("Hello from PicoDoc");
+        """]
+    """
+
+#----: \#doc.author
+
+Convenience macro. Renders as [#~"<meta name=\"author\" content=\"...\">"].
+Takes body (the author name), no parameters.
+
+#code: """
+    #doc.author: Jane Doe
+    """
+
+#----: \#doc.version
+
+Convenience macro. Renders as [#~"<meta name=\"version\" content=\"...\">"].
+Takes body (the version string), no parameters.
+
+#code: """
+    #doc.version: 2.0
+    """
+
+#----: \#doc.datecreated
+
+Convenience macro. Renders as [#~"<meta name=\"datecreated\" content=\"...\">"].
+Takes body (the date string), no parameters.
+
+#code: """
+    #doc.datecreated: 2025-01-01
+    """
+
+#----: \#doc.datemodified
+
+Convenience macro. Renders as [#~"<meta name=\"datemodified\" content=\"...\">"].
+Takes body (the date string), no parameters.
+
+#code: """
+    #doc.datemodified: 2025-06-15
+    """
+
+#----: \#doc.body
+
+Sets attributes on the [#~"<body>"] element. Parameters:
+
+#table:
+  Parameter | Required | Description
+  class | No | CSS class for the body element
+  id | No | HTML id for the body element
+
+No body. This is a document-level directive; it does not render as content.
+
+#code: """
+    #doc.body class=dark-theme id=app
+    """
+
+This produces [#~"<body class=\"dark-theme\" id=\"app\">"].
+
+#----: \#doc.content
+
+Wraps all "loose" top-level content (anything not inside an explicit wrapper
+macro) in a specified HTML container element. This is a document-level
+directive that affects the rendering of body items. Parameters:
+
+#table:
+  Parameter | Required | Description
+  type | Yes | Wrapper tag (must be one of the 9 wrapper tags)
+  class | No | CSS class for the wrapper element
+  id | No | HTML id for the wrapper element
+
+No body. Only one \#doc.content may appear per document. The [#~"type"]
+value must be one of: article, aside, div, footer, header, main, nav,
+section, span.
+
+Behavior: during rendering, top-level items whose resolved name is one of the
+9 wrapper tags remain outside the content wrapper. All other items (paragraphs,
+headings, lists, tables, etc.) are collected and wrapped in a single element
+of the specified type. The wrapper is placed at the position of the first
+loose item, preserving source order.
+
+#code: """
+    #doc.content type=main class=content
+
+    [#header : #-: My Site]
+
+    #p: This paragraph is loose and will be wrapped.
+
+    #p: So will this one.
+
+    [#footer : #p: Copyright 2025]
+    """
+
+This produces header, then [#~"<main class=\"content\">"] containing the
+two paragraphs, then footer.
+
+#----: \#doc.toc
+
+Generates a table of contents from document headings. Unlike other
+[#~"doc.*"] macros, \#doc.toc renders in [#~"<body>"] (not
+[#~"<head>"]). Place it wherever the TOC should appear. Parameters:
+
+#table:
+  Parameter | Required | Description
+  level | No | Maximum heading depth to include (default 3)
+
+No body. Renders as a [#~"<ul>"] tree with nested [#~"<a>"] links
+pointing to heading IDs. Wrap it in a container macro for placement
+control:
+
+#code: """
+    [#nav id=toc class=sidebar-toc :
+      #doc.toc level=3
+    ]
+    """
+
+All headings (\#h1 through \#h6) automatically receive an [#~"id"]
+attribute based on their text content. The slug algorithm lowercases the text,
+replaces non-alphanumeric characters with hyphens, collapses consecutive
+hyphens, and strips leading/trailing hyphens. Duplicate heading texts produce
+unique IDs by appending [#~"-2"], [#~"-3"], etc. Heading IDs are always
+generated, even without \#doc.toc, enabling deep linking.
+
+#code: """
+    #-: Introduction
+    #--: Getting Started
+    #--: Installation
+    """
+
+The TOC for these headings produces:
+
+#code: """
+    <ul>
+    <li><a href="#introduction">Introduction</a>
+    <ul>
+    <li><a href="#getting-started">Getting Started</a>
+    </li>
+    <li><a href="#installation">Installation</a>
+    </li>
+    </ul>
+    </li>
+    </ul>
+    """
+
+Composed with a wrapper:
+
+#code: """
+    [#nav id=toc class=sidebar-toc :
+      #doc.toc level=3
+    ]
+    """
+
+This produces:
+
+#code: """
+    <nav id="toc" class="sidebar-toc">
+    <ul>
+    ...
+    </ul>
+    </nav>
+    """
+
+#----: \#doc.heading.number
+
+Document-level directive that prepends section numbers to headings. Numbers
+track section coordinates (1., 1.1., etc.) starting at h2. Heading level 1
+is always skipped from numbering (HTML recommends a single h1 as the document
+title). Deeper counters reset when a higher-level heading increments.
+Headings beyond the configured level render without numbers. Parameters:
+
+#table:
+  Parameter | Required | Description
+  level | No | Maximum heading depth to number (default 3)
+
+No body.
+
+#code: """
+    #doc.heading.number level=3
+
+    #-: Introduction
+    #--: Background
+    #---: Details
+    #--: Motivation
+    #-: Methods
+    """
+
+This produces:
+
+#code: """
+    <h1 id="introduction">Introduction</h1>
+    <h2 id="background">1. Background</h2>
+    <h3 id="details">1.1. Details</h3>
+    <h2 id="motivation">2. Motivation</h2>
+    <h1 id="methods">Methods</h1>
+    """
+
+#----: \#doc.heading.anchor
+
+Document-level directive that wraps heading content in an anchor link for
+deep-linking. The heading text is highlighted on hover (styled by CSS). Only
+headings up to the configured level receive anchors. Parameters:
+
+#table:
+  Parameter | Required | Description
+  level | No | Maximum heading depth to add anchors (default 3)
+
+No body.
+
+#code: """
+    #doc.heading.anchor level=3
+    #doc.heading.number
+
+    #-: Introduction
+    #--: Background
+    """
+
+This produces:
+
+#code: """
+    <h1 id="introduction"><a href="#introduction">Introduction</a></h1>
+    <h2 id="background"><a href="#background">1. Background</a></h2>
+    """
+
+The anchor wraps the full heading content, including the section number
+when \#doc.heading.number is also active.
+
+#---: Expansion-Time Macros
+
+These macros are fully resolved during evaluation and do not appear in the
+final AST.
+
+The \#comment macro (alias \#//) removes its body from the output. Takes body,
+no parameters.
+
+The \#set macro defines a user macro. See the User-Defined Macros section
+below.
+
+#----: \#ifeq
+
+String equality test. Returns body if lhs equals rhs, empty string
+otherwise. Parameters:
+
+#table:
+  Parameter | Required | Description
+  lhs | Yes | Left-hand side value
+  rhs | Yes | Right-hand side value
+
+Takes body.
+
+#----: \#ifne
+
+String inequality test. Returns body if lhs does not equal rhs, empty
+string otherwise. Same parameters as \#ifeq. Takes body.
+
+#----: \#ifset
+
+Tests whether a macro is defined. Returns body if the named macro exists,
+empty string otherwise. Parameters:
+
+#table:
+  Parameter | Required | Description
+  name | Yes | Macro name to test
+
+Takes body.
+
+#----: \#include
+
+Inserts the contents of another file. The filename is provided as the body of
+the macro call. The included file is parsed and expanded as if its contents
+appeared at the call site. Parameters:
+
+#table:
+  Parameter | Required | Description
+  literal | No | If "true", include as raw text without parsing
+
+Takes body (the filename). Forward slashes are used as path separators on all
+platforms. Backslashes in the filename are normalized to forward slashes.
+
+#code: """
+    [#include : header.pdoc]
+    #include: footer.pdoc
+    [#include literal=true : code.js]
+    """
+
+When [#~"literal=true"] is set, the file contents are included as raw text
+without parsing or macro expansion. This is useful for including source code
+or other non-PicoDoc content.
+
+#---: Alias Table
+
+All 11 aliases mapped to their canonical names:
+
+#table:
+  Alias | Canonical
+  \#- | \#h1
+  \#-- | \#h2
+  \#--- | \#h3
+  \#---- | \#h4
+  \#----- | \#h5
+  \#------ | \#h6
+  \#// | \#comment
+  \#> | \#link
+  \#** | \#b
+  \#__ | \#i
+  \#li | \#*
+
+#--: User-Defined Macros
+
+#---: Defining Macros with \#set
+
+The \#set macro defines a new macro. It must always appear in bracketed form
+and at the top level (not inside macro bodies).
+
+#code: """
+    [#set name=version : 1.0]
+    [#set name=greeting target=? body=? : Dear #target, #body Kind regards.]
+    [#set name=box style=default body=? : [#p : (#style) #body]]
+    """
+
+The name argument is required and specifies the macro name. Additional
+arguments become the macro's parameters.
+
+#---: Parameters
+
+Parameters can be:
+
+[#ul :
+  [#* : [#b : Required] (marked with ?, the caller must supply a value):
+    [#~"target=?"]]
+  [#* : [#b : With default] (given a default value used when the caller omits
+    the argument): [#~"style=default"]]
+]
+
+If the macro uses a body parameter, it must be declared as [#~"body=?"]
+(required) or [#~"body=default"] and must be the last parameter.
+
+Default values are evaluated during the resolution pass after all definitions
+are collected. A default value may be a macro call, which will be expanded
+during resolution.
+
+#---: Calling User Macros
+
+User macros are called exactly like builtin macros:
+
+#code: """
+    #version
+    [#greeting target=World : thank you for your support.]
+    [#box style=fancy : Content here.]
+    """
+
+A macro with no arguments is essentially a variable:
+
+#code: """
+    [#set name=version : 1.0]
+    The version is #version.
+    """
+
+#---: Out-of-Order Definitions
+
+Macros may be used before they are defined. The compiler collects all \#set
+definitions in a first pass before resolving and expanding:
+
+#code: """
+    #p: The project is #project-name.
+    [#set name=project-name : PicoDoc]
+    """
+
+#---: Duplicate Detection
+
+Duplicate macro definitions at the same scope are an immediate error.
+
+#---: Scope and Shadowing
+
+Macro invocation creates a new scope at the call site. Local argument names
+shadow any definitions outside the macro call with the same name.
+
+#---: Overriding Builtin Macros
+
+User-defined macros can shadow render-time builtins such as \#p, \#b, \#code,
+\#link, headings, lists, wrappers, and table cells. This lets you customise
+how standard elements are rendered without losing access to the original
+behaviour.
+
+Expansion-time builtins (\#set, \#ifeq, \#ifne, \#ifset, \#include,
+\#comment, \#table) cannot be overridden. They are resolved before user macros
+and any attempt to shadow them is silently ignored.
+
+#code: """
+    [#set name=p body=? : [#builtin.p : [#b : #body]]]
+    #p: Every paragraph is now bold.
+    """
+
+#----: The \#builtin.* Prefix
+
+Inside a user macro definition (or anywhere else), use \#builtin.name to call
+the original builtin, bypassing the user-defined override. Alias resolution
+applies after the prefix, so [#~"#builtin.**"] resolves to the builtin \#b.
+
+#code: """
+    [#set name=code body=? :
+      [#div class=code-wrapper :
+        [#builtin.code : #body]
+      ]
+    ]
+    [#code language=python : """
+        print("hello")
+        """]
+    """
+
+The \#builtin.* namespace is reserved. Defining a macro whose name starts
+with [#~"builtin."] is an error:
+
+#code: """
+    [#set name=builtin.foo : bar]
+    [#//: Error: reserved namespace: cannot define 'builtin.foo']
+    """
+
+If the name after [#~"builtin."] does not match any builtin macro (after
+alias resolution), an evaluation error is raised.
+
+#---: Macro References as Argument Values
+
+A zero-argument macro (variable) can be passed as an argument value using
+the \#identifier form:
+
+#code: """
+    [#set name=site-url : https://example.com]
+    [#link to=#site-url : Our site]
+    """
+
+#--: Conditionals
+
+PicoDoc has no expression language. Conditions are limited to simple
+comparisons via specialised macros.
+
+The \#ifeq macro returns body if lhs equals rhs:
+
+#code: """
+    [#ifeq lhs=#mode rhs=draft : This document is a draft.]
+    """
+
+The \#ifne macro returns body if lhs does not equal rhs:
+
+#code: """
+    [#ifne lhs=#mode rhs=production : Not yet published.]
+    """
+
+The \#ifset macro returns body if the named macro is defined:
+
+#code: """
+    [#ifset name=env.author : Written by [#env.author].]
+    """
+
+Conditionals can be nested:
+
+#code: """
+    [#ifeq lhs=#mode rhs=draft :
+      [#ifset name=env.author : Draft by [#env.author].]
+    ]
+    """
+
+#--: Includes
+
+The \#include macro inserts the contents of another file at the call site. The
+filename is provided as the body. The included file is parsed and expanded as
+if it appeared inline.
+
+#code: """
+    [#include : header.pdoc]
+
+    #h2: Main Content
+
+    #p: The body of the document.
+
+    [#include : footer.pdoc]
+    """
+
+A common pattern is to use includes for shared headers and footers across
+multiple documents.
+
+To include a file as raw text without parsing (e.g. source code), use the [#~"literal"] parameter:
+
+#code: """
+    [#include literal=true : code.js]
+    """
+
+#--: Global Environment (env.*)
+
+The env.* namespace provides global values accessible to all macros, including
+external filters.
+
+#---: Defining Environment Values
+
+Values can be set from three sources (listed in ascending precedence):
+
+[#ol :
+  [#* : [#b : Config file] : under the \[env\] section in
+    [#~"picodoc.toml"]]
+  [#* : [#b : CLI arguments] : using [#~"-e name=value"] (repeatable)]
+  [#* : [#b : Document-level \#set] : for example
+    [#~"[#set name=env.mode : draft]"]]
+]
+
+Document-level definitions have the highest precedence. The document author
+has final say.
+
+#---: Accessing Environment Values
+
+Environment values are accessed as zero-argument macros:
+
+#code: """
+    #env.mode
+    [#env.author]
+    """
+
+They are inherited through nested macro calls. A macro body can reference
+\#env.mode and it resolves from the global environment.
+
+#---: Immutability
+
+Environment values are global and immutable once set. They cannot be
+overridden locally within macro bodies. This prevents confusing
+action-at-a-distance where a macro silently changes global state.
+
+#--: External Filters
+
+External filters allow users to define macros as command-line programs in any
+language.
+
+#---: Protocol
+
+The filter receives a JSON object on stdin containing all named arguments
+(including body if present) and all env.* values:
+
+#code: """
+    {"arg1": "value1", "body": "the body text", "env": {"mode": "draft"}}
+    """
+
+The filter returns PicoDoc markup on stdout. The multi-pass evaluator expands
+any macro calls in the output on subsequent passes.
+
+A filter that wants to return final HTML (preventing re-expansion) wraps its
+output in \#literal.
+
+#---: Discovery
+
+The converter searches for filter executables in this order:
+
+[#ol :
+  [#* : A filters/ directory alongside the document]
+  [#* : Directories specified via [#~"--filter-path"] or config]
+  [#* : The system $PATH]
+]
+
+The executable name maps to the macro name.
+
+#---: Timeout
+
+A configurable timeout (default 5 seconds, set via [#~"--filter-timeout"]
+or config) kills long-running filters. Non-zero exit codes are treated as
+expansion errors with the filter's stderr included in the error message.
+
+#--: Configuration File
+
+Place a [#~"picodoc.toml"] next to your input file (or point to one with
+the [#~"--config"] flag). CLI flags override config values.
+
+#code: """
+    [env]
+    title = "My Document"
+    author = "Jane Doe"
+
+    [css]
+    files = ["style.css", "code.css"]
+
+    [js]
+    files = ["main.js"]
+
+    [meta]
+    viewport = "width=device-width, initial-scale=1"
+
+    [filters]
+    paths = ["./filters"]
+    timeout = 10.0
+    """
+
+#--: Command-Line Interface
+
+Usage:
+
+#code: """
+    uv run picodoc [OPTIONS] INPUT
+    """
+
+#---: Options
+
+#table:
+  Flag | Description
+  [#~"-o FILE"] | Write output to FILE instead of stdout
+  [#~"-e NAME=VALUE"] | Set an environment variable (repeatable)
+  [#~"--css FILE"] | Inject a CSS file into the head (repeatable)
+  [#~"--js FILE"] | Inject a JS file into the head (repeatable)
+  [#~"--meta NAME=VALUE"] | Add a meta tag (repeatable)
+  [#~"--filter-path DIR"] | Extra filter search directory (repeatable)
+  [#~"--filter-timeout SECS"] | Filter execution timeout (default 5.0)
+  [#~"--config FILE"] | Config file path (auto-discovers picodoc.toml)
+  [#~"--watch"] | Watch for changes and recompile on save
+  [#~"--debug"] | Dump the AST to stderr
+
+#---: Exit Codes
+
+#table:
+  Code | Meaning
+  0 | Success
+  1 | Syntax error (lex or parse failure)
+  2 | Evaluation error or invalid arguments
+
+#--: Expansion Model
+
+PicoDoc processes a document through a pipeline of stages:
+
+[#ol :
+  [#* : [#b : Lexing] : source text is tokenized into a stream of tokens.]
+  [#* : [#b : Parsing] : tokens are assembled into an AST (abstract syntax
+    tree). The parser is definition-independent; it does not need to know which
+    macros are defined.]
+  [#* : [#b : Collection] : all \#set definitions are gathered from the AST
+    without evaluating them.]
+  [#* : [#b : Resolution] : definitions are resolved and default values are
+    evaluated, which may themselves require expansion passes.]
+  [#* : [#b : Expansion] : the evaluator walks the AST expanding macro nodes,
+    marks fully-expanded nodes as complete, and re-walks until convergence.
+    Expansion-time builtins (\#set, \#ifeq, \#include, \#comment, \#table pipe
+    form) are resolved and removed. Only text nodes and render-time builtins
+    remain.]
+  [#* : [#b : Rendering] : the renderer maps the expanded AST to HTML,
+    validates nesting, handles HTML escaping, and wraps the output in a
+    proper document structure (doctype, head, body).]
+]
+
+#---: Multi-Pass Expansion
+
+Expansion is convergence-based. The evaluator keeps walking the AST until no
+unexpanded macro calls remain. This allows macros to produce output containing
+other macro calls that are expanded on subsequent passes (e.g. \#table pipe
+form emits \#tr/\#th/\#td calls).
+
+#---: Call Stack Depth
+
+A global maximum call stack depth (configurable, default 64) catches infinite
+or excessive recursion. Exceeding this limit is an evaluation error.
+
+#---: Preventing Re-Expansion
+
+The \#literal macro prevents its body from being re-expanded. This is useful
+for:
+
+[#ul :
+  [#* : Documenting PicoDoc syntax within PicoDoc documents]
+  [#* : External filters that return final HTML]
+  [#* : Any situation where text containing \# or \[ should be treated as
+    literal output]
+]
+
+#footer:
+  #p: Version 0.1 2026-02-27
+  #p: Last updated:
+
+
+
+
