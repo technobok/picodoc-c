@@ -1930,42 +1930,20 @@ void test_eval_reserved_namespace(void) {
 }
 
 void test_eval_expansion_builtin_not_overridable(void) {
-    /* #set name=set should be collected as a definition but #set still
-       works as an expansion-time builtin */
-    PdNode *result = eval_ok(
+    const char *msg = eval_err(
         "[#set name=set : NOPE]\n"
         "[#set name=x : hello]\n"
         "#p: #x\n"
     );
-    TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
-    PdNode *p = result->as.document.children[0];
-    TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, p->type);
-    char buf[256];
-    body_text(p, buf, sizeof(buf));
-    TEST_ASSERT_EQUAL_STRING("hello", buf);
-    pd_node_free(result);
+    TEST_ASSERT_NOT_NULL(strstr(msg, "cannot override"));
 }
 
 void test_eval_ifeq_not_overridable(void) {
-    /* #ifeq is expansion-time: even if shadowed, it still works */
-    PdNode *result = eval_ok(
+    const char *msg = eval_err(
         "[#set name=ifeq : NOPE]\n"
         "[#ifeq lhs=a rhs=a : [#p: match]]\n"
     );
-    /* The ifeq should have expanded, producing a #p with "match" */
-    bool found_match = false;
-    for (int i = 0; i < result->as.document.count; i++) {
-        PdNode *child = result->as.document.children[i];
-        if (child->type == NODE_MACRO_CALL &&
-            strcmp(child->as.macro_call.name, "p") == 0) {
-            char buf[256];
-            body_text(child, buf, sizeof(buf));
-            if (strstr(buf, "match")) found_match = true;
-        }
-    }
-    TEST_ASSERT_TRUE_MESSAGE(found_match,
-        "expected #ifeq to still work as expansion-time builtin");
-    pd_node_free(result);
+    TEST_ASSERT_NOT_NULL(strstr(msg, "cannot override"));
 }
 
 void test_eval_override_trailing_dot(void) {

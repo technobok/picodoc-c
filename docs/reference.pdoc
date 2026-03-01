@@ -1051,8 +1051,8 @@ how standard elements are rendered without losing access to the original
 behaviour.
 
 Expansion-time builtins (\#set, \#ifeq, \#ifne, \#ifset, \#include,
-\#comment, \#table) cannot be overridden. They are resolved before user macros
-and any attempt to shadow them is silently ignored.
+\#comment, \#table) cannot be overridden. Attempting to define a macro with
+the same name as an expansion-time builtin is an error.
 
 #code language=picodoc: """
     [#set name=p body=? : [#builtin.p : [#b : #body]]]

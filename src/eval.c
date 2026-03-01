@@ -1506,14 +1506,8 @@ static int expand_macro(PdNode *node, EvalContext *ctx, NodeArray *out) {
         return expand_table(node, ctx, out);
 
     /* User macro expansion — allow shadowing render-time builtins */
-    if (!force_builtin) {
-        ptrdiff_t didx = shgeti(ctx->definitions, name);
-        if (didx >= 0) {
-            const BuiltinDef *bdef = find_builtin(name);
-            if (!bdef || !bdef->expansion_time) {
-                return expand_user_macro(node, name, ctx, out);
-            }
-        }
+    if (!force_builtin && shgeti(ctx->definitions, name) >= 0) {
+        return expand_user_macro(node, name, ctx, out);
     }
 
     /* Filter expansion */
@@ -1533,13 +1527,10 @@ static int expand_macro(PdNode *node, EvalContext *ctx, NodeArray *out) {
         memcpy(base, name, (size_t)(name_len - 1));
         base[name_len - 1] = '\0';
         if (shgeti(ctx->definitions, base) >= 0) {
-            const BuiltinDef *bbase = find_builtin(base);
-            if (!bbase || !bbase->expansion_time) {
-                int rc = expand_user_macro(node, base, ctx, out);
-                if (rc < 0) return rc;
-                node_array_push(out, pd_node_text(".", 1, node->span));
-                return 0;
-            }
+            int rc = expand_user_macro(node, base, ctx, out);
+            if (rc < 0) return rc;
+            node_array_push(out, pd_node_text(".", 1, node->span));
+            return 0;
         }
     }
 
@@ -1591,6 +1582,12 @@ static int collect_definitions(PdNode *doc, EvalContext *ctx) {
         if (strncmp(def_name, "builtin.", 8) == 0) {
             return eval_errf(ctx, child->span,
                              "reserved namespace: cannot define '%s'", def_name);
+        }
+
+        const BuiltinDef *bdef = find_builtin(resolve_alias(def_name));
+        if (bdef && bdef->expansion_time) {
+            return eval_errf(ctx, child->span,
+                             "cannot override expansion-time builtin '#%s'", def_name);
         }
 
         if (shgeti(ctx->definitions, def_name) >= 0) {
