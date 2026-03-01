@@ -1000,12 +1000,13 @@ static int render_toc(RenderState *state) {
         } else if (level > stack[arrlen(stack) - 1]) {
             while (level > stack[arrlen(stack) - 1]) {
                 bcatcstr(state->out, "<ul>\n");
-                arrput(stack, stack[arrlen(stack) - 2] + 1);
+                int next_level = stack[arrlen(stack) - 2] + 1;
+                arrput(stack, next_level);
             }
         } else if (level < stack[arrlen(stack) - 1]) {
             while (arrlen(stack) > 0 && stack[arrlen(stack) - 1] > level) {
                 bcatcstr(state->out, "</li>\n</ul>\n");
-                arrpop(stack);
+                (void)arrpop(stack);
             }
             bcatcstr(state->out, "</li>\n");
         } else {
@@ -1025,7 +1026,7 @@ static int render_toc(RenderState *state) {
 
     while (arrlen(stack) > 0) {
         bcatcstr(state->out, "</li>\n</ul>\n");
-        arrpop(stack);
+        (void)arrpop(stack);
     }
 
     arrfree(stack);

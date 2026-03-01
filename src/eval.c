@@ -663,7 +663,7 @@ static int expand_include(PdNode *node, EvalContext *ctx, NodeArray *out) {
     /* Pop include stack */
     int stack_len = arrlen(ctx->include_stack);
     free(ctx->include_stack[stack_len - 1]);
-    arrpop(ctx->include_stack);
+    (void)arrpop(ctx->include_stack);
 
     /* Don't free inc_doc because definitions may reference its nodes.
      * We keep it alive — it will leak, but that's acceptable for now.
@@ -1062,7 +1062,7 @@ static int expand_user_macro(PdNode *node, const char *name,
         }
         int sl = arrlen(ctx->call_stack);
         free(ctx->call_stack[sl - 1]);
-        arrpop(ctx->call_stack);
+        (void)arrpop(ctx->call_stack);
         return rc;
     }
 
@@ -1086,7 +1086,7 @@ static int expand_user_macro(PdNode *node, const char *name,
                 node_array_free_deep(&resolved[k]);
             int sl = arrlen(ctx->call_stack);
             free(ctx->call_stack[sl - 1]);
-            arrpop(ctx->call_stack);
+            (void)arrpop(ctx->call_stack);
             return eval_errf(ctx, node->span,
                              "cannot shadow environment variable: %s",
                              params[j].name);
@@ -1144,7 +1144,7 @@ static int expand_user_macro(PdNode *node, const char *name,
         if (had_def[j]) {
             shput(ctx->definitions, params[j].name, saved_defs[j]);
         } else {
-            shdel(ctx->definitions, params[j].name);
+            (void)shdel(ctx->definitions, params[j].name);
         }
         pd_node_free(synthetic_nodes[j]);
     }
@@ -1156,7 +1156,7 @@ static int expand_user_macro(PdNode *node, const char *name,
     /* Pop call stack */
     int sl = arrlen(ctx->call_stack);
     free(ctx->call_stack[sl - 1]);
-    arrpop(ctx->call_stack);
+    (void)arrpop(ctx->call_stack);
 
     return rc;
 }
