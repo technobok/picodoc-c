@@ -1,7 +1,7 @@
 *.o
 run_tests
-picodoc
-picodoc-lsp
+/picodoc
+/picodoc-lsp
 libpicodoc.so
 __pycache__/
 *.egg-info/
