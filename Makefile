@@ -40,6 +40,6 @@ docs: picodoc
 
 clean:
 	rm -f $(OBJ) $(TEST_OBJ) src/cli.o src/lsp.o src/lsp_main.o picodoc picodoc-lsp run_tests libpicodoc.so
-	$(MAKE) -C docs clean
+	#$(MAKE) -C docs clean
 
 .PHONY: test docs clean
