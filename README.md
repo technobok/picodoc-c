@@ -8,9 +8,9 @@ ported from the Python reference implementation.
 The documentation is written in PicoDoc.
 
 - [PicoDoc Reference (Rendered)](https://technobok.github.io/picodoc-c/reference.html).
-- [PicoDoc Reference (Source)](https://technobok.github.io/picodoc-c/reference.pdoc).
+- [PicoDoc Reference (Source)](https://technobok.github.io/picodoc-c/reference-source.html).
 - [PicoDoc Tutorial (Rendered)](https://technobok.github.io/picodoc-c/tutorial.html).
-- [PicoDoc Tutorial (Source)](https://technobok.github.io/picodoc-c/tutorial.pdoc).
+- [PicoDoc Tutorial (Source)](https://technobok.github.io/picodoc-c/tutorial-source.html).
 
 ## Status
 

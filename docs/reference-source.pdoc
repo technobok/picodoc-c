@@ -1,0 +1,13 @@
+#doc.lang: en
+#doc.title: PicoDoc Language Reference — Source
+#doc.link rel=stylesheet href=style/picodoc.css
+#doc.script src=style/init.js
+#doc.script src=style/prism.min.js
+#doc.script src=style/prism-picodoc.js
+
+#nav id=nav: [#include literal=true: style/nav.html]
+
+#header:
+  #-: PicoDoc Language Reference — Source
+
+#code language=picodoc: [#include literal=true : reference.pdoc]
