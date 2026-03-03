@@ -388,6 +388,37 @@ static void test_link_path(void) {
     free(html);
 }
 
+static void test_link_body_as_to_external(void) {
+    char *html = render_ok(
+        "#p: [#link : https://example.com]\n");
+    TEST_ASSERT_TRUE(contains(html,
+        "<a href=\"https://example.com\">https://example.com</a>"));
+    free(html);
+}
+
+static void test_link_body_as_to_fragment(void) {
+    char *html = render_ok(
+        "#-: Section\n\n"
+        "#p: [#link : section]\n");
+    TEST_ASSERT_TRUE(contains(html,
+        "<a href=\"#section\">Section</a>"));
+    free(html);
+}
+
+static void test_link_no_to_no_body_error(void) {
+    render_err(
+        "#p: [#link]\n",
+        "missing link target");
+}
+
+static void test_link_alias_body_as_to(void) {
+    char *html = render_ok(
+        "#p: [#> : https://example.com]\n");
+    TEST_ASSERT_TRUE(contains(html,
+        "<a href=\"https://example.com\">https://example.com</a>"));
+    free(html);
+}
+
 /* ========================================================================
  * 11. Block code tests
  * ======================================================================== */
@@ -921,6 +952,10 @@ void run_test_render(void) {
     RUN_TEST(test_link_broken_fragment);
     RUN_TEST(test_link_no_body_fragment);
     RUN_TEST(test_link_path);
+    RUN_TEST(test_link_body_as_to_external);
+    RUN_TEST(test_link_body_as_to_fragment);
+    RUN_TEST(test_link_no_to_no_body_error);
+    RUN_TEST(test_link_alias_body_as_to);
 
     /* 11. Block code */
     RUN_TEST(test_block_code_basic);

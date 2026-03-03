@@ -544,8 +544,18 @@ static int render_heading(const PdNode *node, int level, RenderState *state) {
 /* --- Link rendering --- */
 
 static int render_link(const PdNode *node, RenderState *state) {
+    bool to_from_body = false;
     char *to = get_arg_text(node, "to");
-    if (!to) to = strdup("");
+    if (!to || to[0] == '\0') {
+        free(to);
+        if (!node->as.macro_call.body) {
+            return pd_render_error(state->err,
+                "missing link target: provide 'to' argument or body",
+                node->span, state->source, state->filename);
+        }
+        to = body_text(node->as.macro_call.body);
+        to_from_body = true;
+    }
 
     bool is_fragment = (strstr(to, "://") == NULL && strchr(to, '/') == NULL);
 
@@ -589,7 +599,7 @@ static int render_link(const PdNode *node, RenderState *state) {
         bdestroy(href_escaped);
         bcatcstr(state->out, "\">");
 
-        if (node->as.macro_call.body == NULL) {
+        if (node->as.macro_call.body == NULL || to_from_body) {
             /* Use heading text as body */
             const char *heading_text = state->heading_texts[idx].value;
             bstring escaped = escape_html(heading_text,

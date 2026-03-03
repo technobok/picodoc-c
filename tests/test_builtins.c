@@ -52,7 +52,7 @@ void test_find_builtin_link_params(void) {
     TEST_ASSERT_NOT_NULL(b);
     TEST_ASSERT_EQUAL_INT(1, b->param_count);
     TEST_ASSERT_EQUAL_STRING("to", b->params[0].name);
-    TEST_ASSERT_TRUE(b->params[0].required);
+    TEST_ASSERT_FALSE(b->params[0].required);
     TEST_ASSERT_TRUE(b->has_body);
 }
 

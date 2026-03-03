@@ -30,7 +30,7 @@ const char *resolve_alias(const char *name) {
 /* --- Builtin parameter declarations --- */
 
 /* Shared param arrays for common patterns. */
-static const ParamDecl params_link[]     = {{"to", true}};
+static const ParamDecl params_link[]     = {{"to", false}};
 static const ParamDecl params_code[]     = {{"language", false}};
 static const ParamDecl params_td[]       = {{"span", false}};
 static const ParamDecl params_wrapper[]  = {{"class", false}, {"id", false}};
