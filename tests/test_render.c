@@ -411,6 +411,12 @@ static void test_block_code_html_escaping(void) {
     free(html);
 }
 
+static void test_block_code_bracketed_no_leading_newline(void) {
+    char *html = render_ok("[#code:\nint x;\n]\n");
+    TEST_ASSERT_TRUE(contains(html, "<pre><code>int x;\n</code></pre>"));
+    free(html);
+}
+
 /* ========================================================================
  * 12. Inline code tests
  * ======================================================================== */
@@ -920,6 +926,7 @@ void run_test_render(void) {
     RUN_TEST(test_block_code_basic);
     RUN_TEST(test_block_code_with_language);
     RUN_TEST(test_block_code_html_escaping);
+    RUN_TEST(test_block_code_bracketed_no_leading_newline);
 
     /* 12. Inline code */
     RUN_TEST(test_inline_code_basic);

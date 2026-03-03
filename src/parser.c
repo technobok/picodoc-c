@@ -392,6 +392,10 @@ static PdNode *parse_colon_bracket_body(Parser *P) {
     if (at_type(P, TOK_RAW_STRING))
         return parse_raw_string(P);
 
+    /* Skip leading newline (matches unbracketed body behavior) */
+    if (at_type(P, TOK_NEWLINE))
+        advance(P);
+
     Position start = peek(P, 0)->span.start;
     NodeArray children;
     node_array_init(&children);
