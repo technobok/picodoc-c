@@ -456,12 +456,14 @@ Alias: \#>. Hyperlink. Renders as [#~"<a>"]. Parameters:
 
 #table:
   Parameter | Required | Description
-  to | Yes | Link target (URL, path, or fragment name)
+  to | No | Link target (URL, path, or fragment name)
 
-Takes optional body (the link text). For external links, if no body is
-provided the [#~ : to] value is used as the link text.
+Takes optional body (the link text). At least one of [#~ : to] or body
+must be present. When [#~ : to] is omitted, the body text is used as the
+link target. For external links, if no body is provided the [#~ : to]
+value is used as the link text.
 
-Fragment reference behavior: if [#~ : to] does not contain [#~"://"]
+Fragment reference behavior: if the link target does not contain [#~"://"]
 and does not contain [#~"/"], it is treated as a fragment reference and
 \# is prepended (e.g. [#~"to=section1"] produces [#~"href=\"#section1\""]).
 
@@ -481,6 +483,8 @@ For fragment references, two additional rules apply:
     [#link to=section1 : Jump to section]
     [#link to=section1]
     [#link to=page/about : About page]
+    [#link : https://example.com]
+    [#> : section1]
     """
 
 #---: Code and Literal Macros

@@ -451,12 +451,14 @@ This is [#i : also italic] text.</code></pre>
 <tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
 </thead>
 <tbody>
-<tr><td>to</td><td>Yes</td><td>Link target (URL, path, or fragment name)</td></tr>
+<tr><td>to</td><td>No</td><td>Link target (URL, path, or fragment name)</td></tr>
 </tbody>
 </table>
-<p>Takes optional body (the link text). For external links, if no body is
-provided the <code>to</code> value is used as the link text.</p>
-<p>Fragment reference behavior: if <code>to</code> does not contain <code>://</code>
+<p>Takes optional body (the link text). At least one of <code>to</code> or body
+must be present. When <code>to</code> is omitted, the body text is used as the
+link target. For external links, if no body is provided the <code>to</code>
+value is used as the link text.</p>
+<p>Fragment reference behavior: if the link target does not contain <code>://</code>
 and does not contain <code>/</code>, it is treated as a fragment reference and
 # is prepended (e.g. <code>to=section1</code> produces <code>href="#section1"</code>).</p>
 <p>For fragment references, two additional rules apply:</p>
@@ -471,7 +473,9 @@ and does not contain <code>/</code>, it is treated as a fragment reference and
 [#&gt; to="https://example.com" : Alias form]
 [#link to=section1 : Jump to section]
 [#link to=section1]
-[#link to=page/about : About page]</code></pre>
+[#link to=page/about : About page]
+[#link : https://example.com]
+[#&gt; : section1]</code></pre>
 <h3 id="code-and-literal-macros"><a href="#code-and-literal-macros">5.3. Code and Literal Macros</a></h3>
 <h4 id="code"><a href="#code">5.3.1. #code</a></h4>
 <p>Block code. Renders as <code>&lt;pre&gt;&lt;code&gt;</code>. Parameters:</p>
