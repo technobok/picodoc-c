@@ -288,12 +288,12 @@ Both interpreted and raw strings apply the same whitespace rules:
 This allows indenting string content to match the surrounding markup without
 affecting the result:
 
-#code language=picodoc: """
+#code language=picodoc: """"
     [#code language=python : """
         def hello():
             print("world")
         """]
-    """
+    """"
 
 The four spaces before [#~"def"] and [#~"print"] are stripped because
 they match the indentation of the closing delimiter.
