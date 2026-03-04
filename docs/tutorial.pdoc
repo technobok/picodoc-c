@@ -300,6 +300,16 @@ For code blocks, use [#~"#code"] with a raw string body and an optional
 The indentation of the closing [#~"\"\"\""] delimiter determines how much
 leading whitespace is stripped from every line.
 
+You can also use a paragraph body (colon followed by a newline). Body content
+is automatically dedented — the common leading whitespace is stripped:
+
+#code language=picodoc: """
+    #code language=python:
+        def hello():
+            print("Hello, world!")
+
+    """
+
 To show PicoDoc syntax itself without it being interpreted, use \#literal:
 
 #code language=picodoc: """"
@@ -455,6 +465,11 @@ delimiter's indentation is stripped from all lines:
     """"
 
 The four spaces before each line are stripped, producing clean output.
+
+The same kind of dedenting applies to colon body content (paragraph and
+bracketed forms). The longest common leading whitespace across all non-blank
+lines is stripped automatically, so you can indent body content to match
+its macro without the indentation appearing in the output.
 
 #--: Conditionals
 

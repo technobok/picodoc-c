@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "strings.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -404,6 +405,7 @@ static PdNode *parse_colon_bracket_body(Parser *P) {
         return NULL;
     }
     coalesce_text(&children);
+    dedent_body_children(children.items, children.count);
     Position end = children.count > 0
         ? children.items[children.count - 1]->span.end : start;
     return pd_node_body(children.items, children.count,
@@ -439,6 +441,7 @@ static PdNode *parse_body_paragraph(Parser *P) {
     }
 
     coalesce_text(&children);
+    dedent_body_children(children.items, children.count);
     Position end = children.count > 0
         ? children.items[children.count - 1]->span.end : start;
     return pd_node_body(children.items, children.count,

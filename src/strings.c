@@ -1,4 +1,5 @@
 #include "strings.h"
+#include "ast.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -145,4 +146,188 @@ char *strip_string_whitespace(const char *content, int len) {
 
     free(lines);
     return result;
+}
+
+/*
+ * Measure leading whitespace (spaces/tabs) at position p within a string
+ * of length len. Returns the count of whitespace characters.
+ */
+static int measure_ws(const char *s, int p, int len) {
+    int n = 0;
+    while (p + n < len && (s[p + n] == ' ' || s[p + n] == '\t'))
+        n++;
+    return n;
+}
+
+/*
+ * Check if a line starting at position p within string s (length len)
+ * is blank — contains only whitespace before the next '\n' or end.
+ */
+static bool line_is_blank(const char *s, int p, int len) {
+    while (p < len && s[p] != '\n') {
+        if (s[p] != ' ' && s[p] != '\t')
+            return false;
+        p++;
+    }
+    return true;
+}
+
+int dedent_body_children(PdNode **children, int count) {
+    if (count == 0)
+        return 0;
+
+    /* --- Pass 1: compute common prefix length --- */
+
+    int prefix_len = -1; /* -1 = not yet set */
+    char *prefix_chars = NULL; /* first non-blank line's leading ws */
+    bool at_line_start = true;
+
+    for (int ci = 0; ci < count; ci++) {
+        PdNode *node = children[ci];
+        if (node->type != NODE_TEXT) {
+            at_line_start = false;
+            continue;
+        }
+        const char *val = node->as.text.value;
+        int vlen = node->as.text.value_len;
+
+        int p = 0;
+        while (p < vlen) {
+            if (at_line_start) {
+                /* Check if this line is blank */
+                if (line_is_blank(val, p, vlen)) {
+                    /* Skip to next line — blank lines don't affect prefix */
+                    while (p < vlen && val[p] != '\n')
+                        p++;
+                    if (p < vlen) {
+                        p++; /* skip \n */
+                        at_line_start = true;
+                    }
+                    continue;
+                }
+
+                int ws = measure_ws(val, p, vlen);
+                if (prefix_len < 0) {
+                    /* First non-blank line — store its prefix */
+                    prefix_len = ws;
+                    if (ws > 0) {
+                        prefix_chars = malloc((size_t)ws);
+                        if (!prefix_chars) return -1;
+                        memcpy(prefix_chars, val + p, (size_t)ws);
+                    }
+                } else {
+                    /* Subsequent non-blank line — find common prefix */
+                    int common = prefix_len < ws ? prefix_len : ws;
+                    /* Shrink to matching characters */
+                    for (int i = 0; i < common; i++) {
+                        if (val[p + i] != prefix_chars[i]) {
+                            common = i;
+                            break;
+                        }
+                    }
+                    prefix_len = common;
+                }
+                at_line_start = false;
+            }
+
+            /* Scan forward to next newline */
+            while (p < vlen && val[p] != '\n')
+                p++;
+            if (p < vlen) {
+                p++; /* skip \n */
+                at_line_start = true;
+            }
+        }
+    }
+
+    /* Nothing to strip */
+    if (prefix_len <= 0) {
+        free(prefix_chars);
+        return 0;
+    }
+
+    /* --- Pass 2: strip prefix from TEXT nodes --- */
+
+    at_line_start = true;
+
+    for (int ci = 0; ci < count; ci++) {
+        PdNode *node = children[ci];
+        if (node->type != NODE_TEXT) {
+            at_line_start = false;
+            continue;
+        }
+        const char *val = node->as.text.value;
+        int vlen = node->as.text.value_len;
+
+        /* Compute output size first */
+        int out_len = 0;
+        bool als = at_line_start; /* local copy for sizing pass */
+        for (int p = 0; p < vlen; ) {
+            if (als) {
+                int ws = measure_ws(val, p, vlen);
+                int skip = ws < prefix_len ? ws : prefix_len;
+                /* Only skip from non-blank lines, but also skip from blank
+                 * lines up to prefix_len (they just have less ws) */
+                out_len += (vlen > p + ws && val[p + ws] != '\n')
+                    ? (vlen - p - skip) : (vlen - p);
+                /* Actually, let's just do the proper per-character walk */
+                /* Reset and break — we'll use a different approach */
+                out_len = 0;
+                als = at_line_start;
+                break;
+            }
+            out_len++;
+            p++;
+        }
+
+        /* Build output with a single pass */
+        /* Worst case: output is same size as input */
+        char *out = malloc((size_t)vlen + 1);
+        if (!out) {
+            free(prefix_chars);
+            return -1;
+        }
+        int op = 0;
+        bool ls = at_line_start;
+
+        for (int p = 0; p < vlen; ) {
+            if (ls) {
+                if (line_is_blank(val, p, vlen)) {
+                    /* Copy blank line as-is (no stripping) */
+                    while (p < vlen && val[p] != '\n')
+                        out[op++] = val[p++];
+                    if (p < vlen) {
+                        out[op++] = val[p++]; /* copy \n */
+                        ls = true;
+                    }
+                    continue;
+                }
+                /* Non-blank line: skip prefix_len chars */
+                int skip = prefix_len;
+                if (skip > vlen - p) skip = vlen - p;
+                p += skip;
+                ls = false;
+                continue;
+            }
+            if (val[p] == '\n') {
+                out[op++] = '\n';
+                p++;
+                ls = true;
+            } else {
+                out[op++] = val[p++];
+            }
+        }
+        out[op] = '\0';
+
+        /* Track line-start state for next node */
+        at_line_start = ls;
+
+        /* Replace the node's value */
+        free(node->as.text.value);
+        node->as.text.value = out;
+        node->as.text.value_len = op;
+    }
+
+    free(prefix_chars);
+    return 0;
 }

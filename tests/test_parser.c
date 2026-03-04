@@ -812,6 +812,44 @@ void test_parse_macro_call_span(void) {
 }
 
 /* ================================================================== */
+/* 4b. Body dedent tests                                              */
+/* ================================================================== */
+
+void test_parse_paragraph_body_dedent(void) {
+    PdNode *doc = parse_ok("#p:\n    line1\n    line2\n\n");
+    char *bt = body_text(doc->as.document.children[0]);
+    TEST_ASSERT_EQUAL_STRING("line1\nline2", bt);
+    free(bt);
+    pd_node_free(doc);
+}
+
+void test_parse_bracket_body_dedent(void) {
+    PdNode *doc = parse_ok("[#p:\n    line1\n    line2\n]\n");
+    char *bt = body_text(doc->as.document.children[0]);
+    /* Trailing \n before ] is part of the body text */
+    TEST_ASSERT_EQUAL_STRING("line1\nline2\n", bt);
+    free(bt);
+    pd_node_free(doc);
+}
+
+void test_parse_code_block_relative_indent(void) {
+    PdNode *doc = parse_ok("#code:\n    def f():\n        pass\n\n");
+    char *bt = body_text(doc->as.document.children[0]);
+    TEST_ASSERT_EQUAL_STRING("def f():\n    pass", bt);
+    free(bt);
+    pd_node_free(doc);
+}
+
+void test_parse_inline_body_no_dedent(void) {
+    /* Inline body (single line, no newlines) should be unchanged */
+    PdNode *doc = parse_ok("#p: Hello\n");
+    char *bt = body_text(doc->as.document.children[0]);
+    TEST_ASSERT_EQUAL_STRING("Hello", bt);
+    free(bt);
+    pd_node_free(doc);
+}
+
+/* ================================================================== */
 /* 5. String tests                                                    */
 /* ================================================================== */
 
@@ -1149,6 +1187,12 @@ void run_test_parser(void) {
     RUN_TEST(test_parse_empty_string_body);
     RUN_TEST(test_parse_inline_body_span);
     RUN_TEST(test_parse_macro_call_span);
+
+    /* Body dedent */
+    RUN_TEST(test_parse_paragraph_body_dedent);
+    RUN_TEST(test_parse_bracket_body_dedent);
+    RUN_TEST(test_parse_code_block_relative_indent);
+    RUN_TEST(test_parse_inline_body_no_dedent);
 
     /* Strings */
     RUN_TEST(test_parse_simple_string);
