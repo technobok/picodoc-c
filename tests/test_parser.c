@@ -1052,13 +1052,30 @@ void test_parse_err_missing_arg_value(void) {
     TEST_ASSERT_TRUE(parse_err("[#set name=]\n", "expected argument value"));
 }
 
-void test_parse_err_text_after_macro_block(void) {
-    TEST_ASSERT_TRUE(parse_err("#hr extra\n", "unexpected text after macro call"));
+void test_parse_macro_with_trailing_text_is_paragraph(void) {
+    /* #hr extra — parsed as paragraph with inline macro + text */
+    PdNode *doc = parse_ok("#hr extra\n");
+    TEST_ASSERT_EQUAL_INT(1, doc->as.document.count);
+    TEST_ASSERT_EQUAL_INT(NODE_PARAGRAPH, doc->as.document.children[0]->type);
+    pd_node_free(doc);
 }
 
-void test_parse_err_text_after_bracketed_block(void) {
-    TEST_ASSERT_TRUE(parse_err("[#set name=x] extra\n",
-                               "unexpected text after macro call"));
+void test_parse_bracketed_with_trailing_text_is_paragraph(void) {
+    PdNode *doc = parse_ok("[#set name=x] extra\n");
+    TEST_ASSERT_EQUAL_INT(1, doc->as.document.count);
+    TEST_ASSERT_EQUAL_INT(NODE_PARAGRAPH, doc->as.document.children[0]->type);
+    pd_node_free(doc);
+}
+
+void test_parse_inline_macro_starts_paragraph(void) {
+    PdNode *doc = parse_ok("#~\"dot\" has special meaning.\n");
+    TEST_ASSERT_EQUAL_INT(1, doc->as.document.count);
+    PdNode *para = doc->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(NODE_PARAGRAPH, para->type);
+    /* First child should be a macro call (#~) */
+    TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, para->as.paragraph.children[0]->type);
+    TEST_ASSERT_EQUAL_STRING("~", para->as.paragraph.children[0]->as.macro_call.name);
+    pd_node_free(doc);
 }
 
 void test_parse_err_bare_text_in_bracketed(void) {
@@ -1291,8 +1308,9 @@ void run_test_parser(void) {
     RUN_TEST(test_parse_err_missing_macro_name);
     RUN_TEST(test_parse_err_missing_macro_name_bracket);
     RUN_TEST(test_parse_err_missing_arg_value);
-    RUN_TEST(test_parse_err_text_after_macro_block);
-    RUN_TEST(test_parse_err_text_after_bracketed_block);
+    RUN_TEST(test_parse_macro_with_trailing_text_is_paragraph);
+    RUN_TEST(test_parse_bracketed_with_trailing_text_is_paragraph);
+    RUN_TEST(test_parse_inline_macro_starts_paragraph);
     RUN_TEST(test_parse_err_bare_text_in_bracketed);
     RUN_TEST(test_parse_err_has_span);
     RUN_TEST(test_parse_err_format_arrow);

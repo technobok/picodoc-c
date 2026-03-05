@@ -732,16 +732,49 @@ static PdNode *parse_macro_block(Parser *P) {
 
     skip_ws(P);
 
-    if (!at_type(P, TOK_NEWLINE) && !at_eof(P)) {
-        parser_error(P, "unexpected text after macro call", peek(P, 0)->span);
-        pd_node_free(call);
+    if (at_type(P, TOK_NEWLINE) || at_eof(P)) {
+        if (at_type(P, TOK_NEWLINE))
+            advance(P);
+        return call;
+    }
+
+    /* Trailing text — the call is inline; build a paragraph around it. */
+    NodeArray children;
+    node_array_init(&children);
+    node_array_push(&children, call);
+    Position start = call->span.start;
+
+    /* Parse remaining inline content on this line. */
+    if (parse_inline_content(P, STOP_NEWLINE_EOF, &children) < 0) {
+        node_array_free_deep(&children);
         return NULL;
     }
 
-    if (at_type(P, TOK_NEWLINE))
-        advance(P);
+    /* Consume newline and continue paragraph on subsequent non-blank lines. */
+    while (at_type(P, TOK_NEWLINE)) {
+        const Token *nl_tok = advance(P);
+        if (at_eof(P) || is_blank_line(P))
+            break;
+        PdNode *nl = pd_node_text("\n", 1, nl_tok->span);
+        node_array_push(&children, nl);
 
-    return call;
+        NodeArray line;
+        node_array_init(&line);
+        if (parse_inline_content(P, STOP_NEWLINE_EOF, &line) < 0) {
+            node_array_free_deep(&line);
+            node_array_free_deep(&children);
+            return NULL;
+        }
+        for (int i = 0; i < line.count; i++)
+            node_array_push(&children, line.items[i]);
+        node_array_free_shallow(&line);
+    }
+
+    coalesce_text(&children);
+    Position end = children.count > 0
+        ? children.items[children.count - 1]->span.end : start;
+    return pd_node_paragraph(children.items, children.count,
+                              span_make(start, end));
 }
 
 static PdNode *parse_paragraph(Parser *P) {

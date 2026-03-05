@@ -16,6 +16,8 @@ TEST_OBJ = $(TEST_SRC:.c=.o)
 # Core library objects (everything except cli.o)
 LIB_OBJ  = $(filter-out src/cli.o,$(OBJ))
 
+all: picodoc picodoc-lsp
+
 picodoc: $(OBJ) src/cli.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
@@ -42,4 +44,4 @@ clean:
 	rm -f $(OBJ) $(TEST_OBJ) src/cli.o src/lsp.o src/lsp_main.o picodoc picodoc-lsp run_tests libpicodoc.so
 	#$(MAKE) -C docs clean
 
-.PHONY: test docs clean
+.PHONY: all test docs clean
