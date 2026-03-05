@@ -850,6 +850,40 @@ void test_parse_inline_body_no_dedent(void) {
 }
 
 /* ================================================================== */
+/* 4c. Bracketed call — string body on next line                      */
+/* ================================================================== */
+
+void test_parse_bracket_string_body_next_line(void) {
+    PdNode *doc = parse_ok("[#p\n\"hello\"]\n");
+    PdNode *call = doc->as.document.children[0];
+    assert_call(call, "p", 0, true, true);
+    TEST_ASSERT_EQUAL_INT(NODE_INTERP_STRING, call->as.macro_call.body->type);
+    TEST_ASSERT_EQUAL_STRING("hello",
+        call->as.macro_call.body->as.interp_string.parts[0]->as.text.value);
+    pd_node_free(doc);
+}
+
+void test_parse_bracket_raw_string_body_next_line(void) {
+    PdNode *doc = parse_ok("[#p\n\"\"\"raw hello\"\"\"]\n");
+    PdNode *call = doc->as.document.children[0];
+    assert_call(call, "p", 0, true, true);
+    TEST_ASSERT_EQUAL_INT(NODE_RAW_STRING, call->as.macro_call.body->type);
+    TEST_ASSERT_EQUAL_STRING("raw hello",
+        call->as.macro_call.body->as.text.value);
+    pd_node_free(doc);
+}
+
+void test_parse_bracket_args_then_string_next_line(void) {
+    PdNode *doc = parse_ok("[#code language=python\n\"\"\"def f(): pass\"\"\"]\n");
+    PdNode *call = doc->as.document.children[0];
+    assert_call(call, "code", 1, true, true);
+    TEST_ASSERT_EQUAL_INT(NODE_RAW_STRING, call->as.macro_call.body->type);
+    TEST_ASSERT_EQUAL_STRING("def f(): pass",
+        call->as.macro_call.body->as.text.value);
+    pd_node_free(doc);
+}
+
+/* ================================================================== */
 /* 5. String tests                                                    */
 /* ================================================================== */
 
@@ -1193,6 +1227,11 @@ void run_test_parser(void) {
     RUN_TEST(test_parse_bracket_body_dedent);
     RUN_TEST(test_parse_code_block_relative_indent);
     RUN_TEST(test_parse_inline_body_no_dedent);
+
+    /* Bracketed string body on next line */
+    RUN_TEST(test_parse_bracket_string_body_next_line);
+    RUN_TEST(test_parse_bracket_raw_string_body_next_line);
+    RUN_TEST(test_parse_bracket_args_then_string_next_line);
 
     /* Strings */
     RUN_TEST(test_parse_simple_string);

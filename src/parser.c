@@ -649,8 +649,12 @@ static PdNode *parse_bracketed_call(Parser *P) {
     } else if (at_type(P, TOK_COLON)) {
         body = parse_colon_bracket_body(P);
         if (!body) goto bracket_fail;
-    } else if (at_type(P, TOK_WS)) {
-        advance(P); /* consume WS */
+    } else if (at_type(P, TOK_WS) || at_type(P, TOK_NEWLINE)) {
+        advance(P); /* consume WS or NEWLINE */
+
+        /* After a newline, skip further whitespace/newlines */
+        while (at_type(P, TOK_WS) || at_type(P, TOK_NEWLINE))
+            advance(P);
 
         if (is_named_arg_start(P)) {
             NodeArray arg_arr;
@@ -661,6 +665,10 @@ static PdNode *parse_bracketed_call(Parser *P) {
             }
             args = arg_arr.items;
             arg_count = arg_arr.count;
+
+            /* Skip whitespace/newlines between args and body */
+            while (at_type(P, TOK_WS) || at_type(P, TOK_NEWLINE))
+                advance(P);
 
             if (at_type(P, TOK_COLON)) {
                 body = parse_colon_bracket_body(P);
