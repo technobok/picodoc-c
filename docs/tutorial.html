@@ -239,6 +239,10 @@ This is #__"italic" text.</code></pre>
 This is [#i : italic text in brackets].</code></pre>
 <p>Bold and italic can be nested:</p>
 <pre><code class="language-picodoc">This is [#b : bold with [#i : italic inside]].</code></pre>
+<p>For combined bold+italic, use #*_ (strong wrapping em) or #_* (em wrapping
+strong):</p>
+<pre><code class="language-picodoc">This is #*_"bold italic" text.
+This is [#_*: italic bold] text.</code></pre>
 <h3 id="links"><a href="#links">7.2. Links</a></h3>
 <p>Use <code>#link</code> (or its alias <code>#&gt;</code>) with a <code>to</code> argument
 and optional body for the link text:</p>
@@ -316,6 +320,12 @@ The [#~ language=python : def] keyword starts a function.</code></pre>
     """]</code></pre>
 <p>The indentation of the closing <code>"""</code> delimiter determines how much
 leading whitespace is stripped from every line.</p>
+<p>You can also use a paragraph body (colon followed by a newline). Body content
+is automatically dedented &#x2014; the common leading whitespace is stripped:</p>
+<pre><code class="language-picodoc">#code language=python:
+    def hello():
+        print("Hello, world!")
+</code></pre>
 <p>To show PicoDoc syntax itself without it being interpreted, use #literal:</p>
 <pre><code class="language-picodoc">#literal """
 The #b macro makes text bold.
@@ -402,6 +412,10 @@ delimiter's indentation is stripped from all lines:</p>
         print("world")
     """]</code></pre>
 <p>The four spaces before each line are stripped, producing clean output.</p>
+<p>The same kind of dedenting applies to colon body content (paragraph and
+bracketed forms). The longest common leading whitespace across all non-blank
+lines is stripped automatically, so you can indent body content to match
+its macro without the indentation appearing in the output.</p>
 <h2 id="conditionals"><a href="#conditionals">15. Conditionals</a></h2>
 <p>PicoDoc provides three conditional macros:</p>
 <p>The #ifeq macro tests string equality:</p>

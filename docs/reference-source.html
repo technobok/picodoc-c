@@ -300,6 +300,28 @@ lines and paragraphs.
 
 If no colon and no string literal is present, the macro call has no body.
 
+#---: Body Whitespace Stripping
+
+Multiline body content (both paragraph and bracketed forms) is
+[#b : dedented]: the longest common leading whitespace shared by all
+non-blank lines is stripped. This lets you indent body content to match the
+surrounding markup without that indentation leaking into the output.
+
+#code language=picodoc: """
+    #code:
+        def hello():
+            print("hi")
+
+    """
+
+The four spaces before [#~"def"] and [#~"print"] are stripped because they
+are the common leading whitespace. The relative indentation (four extra spaces
+on [#~"print"]) is preserved.
+
+Blank lines inside the body do not affect the common prefix calculation.
+Inline bodies (content on the same line as the colon) have no newlines and
+are unaffected.
+
 #--: String Literals
 
 #---: Interpreted Strings
@@ -356,15 +378,21 @@ Both interpreted and raw strings apply the same whitespace rules:
 This allows indenting string content to match the surrounding markup without
 affecting the result:
 
-#code language=picodoc: """
+#code language=picodoc: """"
     [#code language=python : """
         def hello():
             print("world")
         """]
-    """
+    """"
 
 The four spaces before [#~"def"] and [#~"print"] are stripped because
 they match the indentation of the closing delimiter.
+
+Colon body content (paragraph and bracketed) applies analogous whitespace
+stripping: the longest common whitespace prefix across all non-blank content
+lines is removed. The difference from strings is that strings use the closing
+delimiter's indentation as the reference prefix, while bodies compute the
+minimum common prefix directly.
 
 #---: Adjacent String Restriction
 
@@ -374,7 +402,7 @@ This prevents a mismatched quote from silently cascading through the file.
 
 #--: Builtin Macros
 
-PicoDoc has 42 builtin macros in 8 categories, plus 11 aliases.
+PicoDoc has 44 builtin macros in 8 categories, plus 11 aliases.
 
 #---: Structural Macros
 
@@ -450,6 +478,26 @@ parameters.
     This is [#i : also italic] text.
     """
 
+#----: \#*_
+
+Bold italic. Renders as [#~"<strong><em>"] (strong wrapping em). Takes body,
+no parameters.
+
+#code language=picodoc: """
+    This is [#*_: bold italic] text.
+    This is #*_"also bold italic" text.
+    """
+
+#----: \#_*
+
+Italic bold. Renders as [#~"<em><strong>"] (em wrapping strong). Takes body,
+no parameters.
+
+#code language=picodoc: """
+    This is [#_*: italic bold] text.
+    This is #_*"also italic bold" text.
+    """
+
 #----: \#link
 
 Alias: \#>. Hyperlink. Renders as [#~"<a>"]. Parameters:
@@ -506,6 +554,16 @@ of body type. For inline code, use \#~ instead.
             print("world")
         """]
     """"
+
+With a paragraph body, body dedenting strips the common indentation
+automatically:
+
+#code language=picodoc: """
+    #code language=python:
+        def hello():
+            print("world")
+
+    """
 
 #----: \#~
 

@@ -96,6 +96,8 @@ Table of Contents</div>
 </li>
 <li><a href="#the-body-argument">The Body Argument</a>
 </li>
+<li><a href="#body-whitespace-stripping">Body Whitespace Stripping</a>
+</li>
 </ul>
 </li>
 <li><a href="#string-literals">String Literals</a>
@@ -212,9 +214,9 @@ call. This regularity means there is only one syntax to learn.</p>
 <ul>
 <li><strong>One abstraction</strong> : macros are the only construct.</li>
 <li><strong>Named arguments</strong> : all arguments are named, eliminating
-    positional ambiguity.</li>
+positional ambiguity.</li>
 <li><strong>Strict parsing</strong> : invalid input is rejected with clear error
-    messages rather than silently guessed at.</li>
+messages rather than silently guessed at.</li>
 <li><strong>UTF-8 only</strong> : no encoding detection or fallback.</li>
 <li><strong>HTML target</strong> : the primary output format is HTML.</li>
 </ul>
@@ -357,6 +359,21 @@ lines and paragraphs.</p>
   #*: Third item
 ]</code></pre>
 <p>If no colon and no string literal is present, the macro call has no body.</p>
+<h3 id="body-whitespace-stripping"><a href="#body-whitespace-stripping">3.5. Body Whitespace Stripping</a></h3>
+<p>Multiline body content (both paragraph and bracketed forms) is
+<strong>dedented</strong>: the longest common leading whitespace shared by all
+non-blank lines is stripped. This lets you indent body content to match the
+surrounding markup without that indentation leaking into the output.</p>
+<pre><code class="language-picodoc">#code:
+    def hello():
+        print("hi")
+</code></pre>
+<p>The four spaces before <code>def</code> and <code>print</code> are stripped because they
+are the common leading whitespace. The relative indentation (four extra spaces
+on <code>print</code>) is preserved.</p>
+<p>Blank lines inside the body do not affect the common prefix calculation.
+Inline bodies (content on the same line as the colon) have no newlines and
+are unaffected.</p>
 <h2 id="string-literals"><a href="#string-literals">4. String Literals</a></h2>
 <h3 id="interpreted-strings"><a href="#interpreted-strings">4.1. Interpreted Strings</a></h3>
 <p>Delimited by a single double quote on each end. Escape sequences are processed
@@ -398,12 +415,17 @@ affecting the result:</p>
     """]</code></pre>
 <p>The four spaces before <code>def</code> and <code>print</code> are stripped because
 they match the indentation of the closing delimiter.</p>
+<p>Colon body content (paragraph and bracketed) applies analogous whitespace
+stripping: the longest common whitespace prefix across all non-blank content
+lines is removed. The difference from strings is that strings use the closing
+delimiter's indentation as the reference prefix, while bodies compute the
+minimum common prefix directly.</p>
 <h3 id="adjacent-string-restriction"><a href="#adjacent-string-restriction">4.5. Adjacent String Restriction</a></h3>
 <p>After a string literal closes, the next character must not be a double quote.
 At least one non-quote character must separate consecutive string literals.
 This prevents a mismatched quote from silently cascading through the file.</p>
 <h2 id="builtin-macros"><a href="#builtin-macros">5. Builtin Macros</a></h2>
-<p>PicoDoc has 42 builtin macros in 8 categories, plus 11 aliases.</p>
+<p>PicoDoc has 44 builtin macros in 8 categories, plus 11 aliases.</p>
 <h3 id="structural-macros"><a href="#structural-macros">5.1. Structural Macros</a></h3>
 <h4 id="h1"><a href="#h1">5.1.1. #h1</a></h4>
 <p>Alias: #-. Top-level heading. Renders as <code>&lt;h1&gt;</code> in the document body.
@@ -444,7 +466,17 @@ This is [#b : also bold] text.</code></pre>
 parameters.</p>
 <pre><code class="language-picodoc">This is #__"italic" text.
 This is [#i : also italic] text.</code></pre>
-<h4 id="link"><a href="#link">5.2.3. #link</a></h4>
+<h4 id="heading"><a href="#heading">5.2.3. #*_</a></h4>
+<p>Bold italic. Renders as <code>&lt;strong&gt;&lt;em&gt;</code> (strong wrapping em). Takes body,
+no parameters.</p>
+<pre><code class="language-picodoc">This is [#*_: bold italic] text.
+This is #*_"also bold italic" text.</code></pre>
+<h4 id="heading-2"><a href="#heading-2">5.2.4. #_*</a></h4>
+<p>Italic bold. Renders as <code>&lt;em&gt;&lt;strong&gt;</code> (em wrapping strong). Takes body,
+no parameters.</p>
+<pre><code class="language-picodoc">This is [#_*: italic bold] text.
+This is #_*"also italic bold" text.</code></pre>
+<h4 id="link"><a href="#link">5.2.5. #link</a></h4>
 <p>Alias: #&gt;. Hyperlink. Renders as <code>&lt;a&gt;</code>. Parameters:</p>
 <table>
 <thead>
@@ -464,10 +496,10 @@ and does not contain <code>/</code>, it is treated as a fragment reference and
 <p>For fragment references, two additional rules apply:</p>
 <ul>
 <li><strong>Auto-text</strong> : if no body is provided, the link text defaults
-    to the heading text of the target anchor. The text is always the plain
-    heading text without section numbers.</li>
+to the heading text of the target anchor. The text is always the plain
+heading text without section numbers.</li>
 <li><strong>Validation</strong> : the target must match a heading anchor in the
-    document. A broken internal link is a render error.</li>
+document. A broken internal link is a render error.</li>
 </ul>
 <pre><code class="language-picodoc">[#link to="https://example.com" : Click here]
 [#&gt; to="https://example.com" : Alias form]
@@ -493,7 +525,13 @@ of body type. For inline code, use #~ instead.</p>
     def hello():
         print("world")
     """]</code></pre>
-<h4 id="heading"><a href="#heading">5.3.2. #~</a></h4>
+<p>With a paragraph body, body dedenting strips the common indentation
+automatically:</p>
+<pre><code class="language-picodoc">#code language=python:
+    def hello():
+        print("world")
+</code></pre>
+<h4 id="heading-3"><a href="#heading-3">5.3.2. #~</a></h4>
 <p>Inline code. Renders as <code>&lt;code&gt;</code>. Parameters:</p>
 <table>
 <thead>
@@ -522,7 +560,7 @@ contain only #* (list item) elements.</p>
 <h4 id="ol"><a href="#ol">5.4.2. #ol</a></h4>
 <p>Ordered list. Renders as <code>&lt;ol&gt;</code>. Takes body, no parameters. Body must
 contain only #* (list item) elements.</p>
-<h4 id="heading-2"><a href="#heading-2">5.4.3. #*</a></h4>
+<h4 id="heading-4"><a href="#heading-4">5.4.3. #*</a></h4>
 <p>Alias: #li. List item. Renders as <code>&lt;li&gt;</code>. Takes body, no parameters.
 Must appear inside #ul or #ol.</p>
 <pre><code class="language-picodoc">[#ul :
@@ -928,7 +966,7 @@ arguments become the macro's parameters.</p>
 <li><strong>Required</strong> (marked with ?, the caller must supply a value):
     <code>target=?</code></li>
 <li><strong>With default</strong> (given a default value used when the caller omits
-    the argument): <code>style=default</code></li>
+the argument): <code>style=default</code></li>
 </ul>
 <p>If the macro uses a body parameter, it must be declared as <code>body=?</code>
 (required) or <code>body=default</code> and must be the last parameter.</p>
@@ -1117,20 +1155,20 @@ timeout = 10.0</code></pre>
 <ol>
 <li><strong>Lexing</strong> : source text is tokenized into a stream of tokens.</li>
 <li><strong>Parsing</strong> : tokens are assembled into an AST (abstract syntax
-    tree). The parser is definition-independent; it does not need to know which
-    macros are defined.</li>
+tree). The parser is definition-independent; it does not need to know which
+macros are defined.</li>
 <li><strong>Collection</strong> : all #set definitions are gathered from the AST
-    without evaluating them.</li>
+without evaluating them.</li>
 <li><strong>Resolution</strong> : definitions are resolved and default values are
-    evaluated, which may themselves require expansion passes.</li>
+evaluated, which may themselves require expansion passes.</li>
 <li><strong>Expansion</strong> : the evaluator walks the AST expanding macro nodes,
-    marks fully-expanded nodes as complete, and re-walks until convergence.
-    Expansion-time builtins (#set, #ifeq, #include, #comment, #table pipe
-    form) are resolved and removed. Only text nodes and render-time builtins
-    remain.</li>
+marks fully-expanded nodes as complete, and re-walks until convergence.
+Expansion-time builtins (#set, #ifeq, #include, #comment, #table pipe
+form) are resolved and removed. Only text nodes and render-time builtins
+remain.</li>
 <li><strong>Rendering</strong> : the renderer maps the expanded AST to HTML,
-    validates nesting, handles HTML escaping, and wraps the output in a
-    proper document structure (doctype, head, body).</li>
+validates nesting, handles HTML escaping, and wraps the output in a
+proper document structure (doctype, head, body).</li>
 </ol>
 <h3 id="multi-pass-expansion"><a href="#multi-pass-expansion">13.1. Multi-Pass Expansion</a></h3>
 <p>Expansion is convergence-based. The evaluator keeps walking the AST until no
