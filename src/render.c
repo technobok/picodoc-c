@@ -1253,6 +1253,20 @@ static int render_node(const PdNode *node, RenderState *state) {
         bcatcstr(state->out, "</em>");
         return 0;
     }
+    if (strcmp(name, "*_") == 0) {
+        bcatcstr(state->out, "<strong><em>");
+        int rc = render_body(node->as.macro_call.body, state);
+        if (rc < 0) return -1;
+        bcatcstr(state->out, "</em></strong>");
+        return 0;
+    }
+    if (strcmp(name, "_*") == 0) {
+        bcatcstr(state->out, "<em><strong>");
+        int rc = render_body(node->as.macro_call.body, state);
+        if (rc < 0) return -1;
+        bcatcstr(state->out, "</strong></em>");
+        return 0;
+    }
     if (strcmp(name, "link") == 0) {
         return render_link(node, state);
     }

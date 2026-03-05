@@ -345,6 +345,18 @@ static void test_italic(void) {
     free(html);
 }
 
+static void test_bold_italic(void) {
+    char *html = render_ok("#p: Text [#*_: bold italic] end\n");
+    TEST_ASSERT_TRUE(contains(html, "<strong><em>bold italic</em></strong>"));
+    free(html);
+}
+
+static void test_italic_bold(void) {
+    char *html = render_ok("#p: Text [#_*: italic bold] end\n");
+    TEST_ASSERT_TRUE(contains(html, "<em><strong>italic bold</strong></em>"));
+    free(html);
+}
+
 /* ========================================================================
  * 10. Link tests
  * ======================================================================== */
@@ -945,6 +957,8 @@ void run_test_render(void) {
     /* 9. Bold / Italic */
     RUN_TEST(test_bold);
     RUN_TEST(test_italic);
+    RUN_TEST(test_bold_italic);
+    RUN_TEST(test_italic_bold);
 
     /* 10. Links */
     RUN_TEST(test_link_external);

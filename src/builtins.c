@@ -70,6 +70,8 @@ static const BuiltinDef BUILTINS[] = {
     /* Inline */
     B0("b", true, false),
     B0("i", true, false),
+    B0("*_", true, false),
+    B0("_*", true, false),
     B("link", params_link, true, false),
 
     /* Code / literal */

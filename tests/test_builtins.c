@@ -84,6 +84,18 @@ void test_find_builtin_ifeq_params(void) {
     TEST_ASSERT_TRUE(b->params[1].required);
 }
 
+void test_find_builtin_bold_italic(void) {
+    const BuiltinDef *bi = find_builtin("*_");
+    TEST_ASSERT_NOT_NULL(bi);
+    TEST_ASSERT_TRUE(bi->has_body);
+    TEST_ASSERT_EQUAL_INT(0, bi->param_count);
+
+    const BuiltinDef *ib = find_builtin("_*");
+    TEST_ASSERT_NOT_NULL(ib);
+    TEST_ASSERT_TRUE(ib->has_body);
+    TEST_ASSERT_EQUAL_INT(0, ib->param_count);
+}
+
 /* --- is_wrapper_tag --- */
 
 void test_is_wrapper_tag_positive(void) {
@@ -141,6 +153,7 @@ void run_test_builtins(void) {
     RUN_TEST(test_find_builtin_set_params);
     RUN_TEST(test_find_builtin_div_params);
     RUN_TEST(test_find_builtin_ifeq_params);
+    RUN_TEST(test_find_builtin_bold_italic);
     RUN_TEST(test_is_wrapper_tag_positive);
     RUN_TEST(test_is_wrapper_tag_negative);
     RUN_TEST(test_is_block_macro_positive);
