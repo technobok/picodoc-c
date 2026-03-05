@@ -334,7 +334,7 @@ This prevents a mismatched quote from silently cascading through the file.
 
 #--: Builtin Macros
 
-PicoDoc has 42 builtin macros in 8 categories, plus 11 aliases.
+PicoDoc has 44 builtin macros in 8 categories, plus 11 aliases.
 
 #---: Structural Macros
 
@@ -408,6 +408,26 @@ parameters.
 #code language=picodoc: """
     This is #__"italic" text.
     This is [#i : also italic] text.
+    """
+
+#----: \#*_
+
+Bold italic. Renders as [#~"<strong><em>"] (strong wrapping em). Takes body,
+no parameters.
+
+#code language=picodoc: """
+    This is [#*_: bold italic] text.
+    This is #*_"also bold italic" text.
+    """
+
+#----: \#_*
+
+Italic bold. Renders as [#~"<em><strong>"] (em wrapping strong). Takes body,
+no parameters.
+
+#code language=picodoc: """
+    This is [#_*: italic bold] text.
+    This is #_*"also italic bold" text.
     """
 
 #----: \#link

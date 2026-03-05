@@ -168,6 +168,14 @@ Bold and italic can be nested:
     This is [#b : bold with [#i : italic inside]].
     """
 
+For combined bold+italic, use \#*_ (strong wrapping em) or \#_* (em wrapping
+strong):
+
+#code language=picodoc: """
+    This is #*_"bold italic" text.
+    This is [#_*: italic bold] text.
+    """
+
 #---: Links
 
 Use [#~"#link"] (or its alias [#~"#>"]) with a [#~"to"] argument
