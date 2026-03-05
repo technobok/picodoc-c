@@ -254,8 +254,16 @@ static int parse_named_args(Parser *P, NodeArray *args) {
     if (!arg) return -1;
     node_array_push(args, arg);
 
-    while (at_type(P, TOK_WS)) {
-        advance(P); /* consume WS */
+    for (;;) {
+        if (at_type(P, TOK_WS)) {
+            advance(P); /* consume WS */
+        } else if (P->bracket_depth > 0 && at_type(P, TOK_NEWLINE)) {
+            advance(P); /* consume NEWLINE inside brackets */
+            while (at_type(P, TOK_WS) || at_type(P, TOK_NEWLINE))
+                advance(P);
+        } else {
+            break;
+        }
         if (is_named_arg_start(P)) {
             arg = parse_named_arg(P);
             if (!arg) return -1;

@@ -883,6 +883,40 @@ void test_parse_bracket_args_then_string_next_line(void) {
     pd_node_free(doc);
 }
 
+void test_parse_bracket_args_across_newlines(void) {
+    PdNode *doc = parse_ok("[#set name=foo\nbody=?]\n");
+    PdNode *call = doc->as.document.children[0];
+    assert_call(call, "set", 2, false, true);
+    TEST_ASSERT_EQUAL_STRING("foo",
+        call->as.macro_call.args[0]->as.named_arg.value->as.text.value);
+    TEST_ASSERT_EQUAL_INT(NODE_REQUIRED_MARKER,
+        call->as.macro_call.args[1]->as.named_arg.value->type);
+    pd_node_free(doc);
+}
+
+void test_parse_bracket_args_across_newlines_with_body(void) {
+    PdNode *doc = parse_ok("[#set name=greeting\ntarget=?\n: Hello #target!]\n");
+    PdNode *call = doc->as.document.children[0];
+    assert_call(call, "set", 2, true, true);
+    TEST_ASSERT_EQUAL_STRING("greeting",
+        call->as.macro_call.args[0]->as.named_arg.value->as.text.value);
+    pd_node_free(doc);
+}
+
+void test_parse_bracket_args_across_newlines_indented(void) {
+    PdNode *doc = parse_ok("[#set\n  name=foo\n  body=?\n  : text]\n");
+    PdNode *call = doc->as.document.children[0];
+    assert_call(call, "set", 2, true, true);
+    pd_node_free(doc);
+}
+
+void test_parse_bracket_bare_macro_newline(void) {
+    PdNode *doc = parse_ok("[#hr\n]\n");
+    PdNode *call = doc->as.document.children[0];
+    assert_call(call, "hr", 0, false, true);
+    pd_node_free(doc);
+}
+
 /* ================================================================== */
 /* 5. String tests                                                    */
 /* ================================================================== */
@@ -1232,6 +1266,10 @@ void run_test_parser(void) {
     RUN_TEST(test_parse_bracket_string_body_next_line);
     RUN_TEST(test_parse_bracket_raw_string_body_next_line);
     RUN_TEST(test_parse_bracket_args_then_string_next_line);
+    RUN_TEST(test_parse_bracket_args_across_newlines);
+    RUN_TEST(test_parse_bracket_args_across_newlines_with_body);
+    RUN_TEST(test_parse_bracket_args_across_newlines_indented);
+    RUN_TEST(test_parse_bracket_bare_macro_newline);
 
     /* Strings */
     RUN_TEST(test_parse_simple_string);
