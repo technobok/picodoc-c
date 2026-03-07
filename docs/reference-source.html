@@ -633,7 +633,40 @@ Must appear inside \#ul or \#ol.
 
 #----: \#table
 
-Table container. Renders as [#~"<table>"]. Takes body, no parameters.
+Table container. Renders as [#~"<table>"]. Takes body. Parameters:
+
+#table:
+  Parameter | Required | Description
+  cols | No | Column widths and alignment spec
+
+The [#~ : cols] parameter specifies relative column widths and optional
+alignment, using a space-separated list of integers. Prefix a column with
+[#~ : >] for right-alignment or [#~ : <] for left-alignment (default).
+Example: [#~ : cols="1 >2 1"] means 3 columns where the middle column is
+twice as wide and right-aligned.
+
+When [#~ : cols] is present, a [#~"<colgroup>"] element is emitted with
+percentage-based widths (integer division: width*100/total). The column
+count must match every row's cell count or rendering fails with an error.
+
+#code language=picodoc: """
+    [#table cols="1 >2 1" :
+      Name | Score | Status
+      Alice | 95 | Active
+      Bob | 87 | Active
+    ]
+    """
+
+#p: This produces:
+
+#code language=html: """
+    <colgroup>
+    <col style="width: 25%">
+    <col style="width: 50%; text-align: right">
+    <col style="width: 25%">
+    </colgroup>
+    """
+
 Supports two forms:
 
 #p: [#b : Pipe-delimited form]: the body is parsed as pipe-separated rows.

@@ -580,8 +580,35 @@ Must appear inside #ul or #ol.</p>
 ]</code></pre>
 <h3 id="table-macros"><a href="#table-macros">5.5. Table Macros</a></h3>
 <h4 id="table"><a href="#table">5.5.1. #table</a></h4>
-<p>Table container. Renders as <code>&lt;table&gt;</code>. Takes body, no parameters.
-Supports two forms:</p>
+<p>Table container. Renders as <code>&lt;table&gt;</code>. Takes body. Parameters:</p>
+<table>
+<thead>
+<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>cols</td><td>No</td><td>Column widths and alignment spec</td></tr>
+</tbody>
+</table>
+<p>The <code>cols</code> parameter specifies relative column widths and optional
+alignment, using a space-separated list of integers. Prefix a column with
+<code>&gt;</code> for right-alignment or <code>&lt;</code> for left-alignment (default).
+Example: <code>cols="1 &gt;2 1"</code> means 3 columns where the middle column is
+twice as wide and right-aligned.</p>
+<p>When <code>cols</code> is present, a <code>&lt;colgroup&gt;</code> element is emitted with
+percentage-based widths (integer division: width*100/total). The column
+count must match every row's cell count or rendering fails with an error.</p>
+<pre><code class="language-picodoc">[#table cols="1 &gt;2 1" :
+  Name | Score | Status
+  Alice | 95 | Active
+  Bob | 87 | Active
+]</code></pre>
+<p>This produces:</p>
+<pre><code class="language-html">&lt;colgroup&gt;
+&lt;col style="width: 25%"&gt;
+&lt;col style="width: 50%; text-align: right"&gt;
+&lt;col style="width: 25%"&gt;
+&lt;/colgroup&gt;</code></pre>
+<p>Supports two forms:</p>
 <p><strong>Pipe-delimited form</strong>: the body is parsed as pipe-separated rows.</p>
 <p>The first row becomes headers (#th), subsequent rows become data (#td).</p>
 <pre><code class="language-picodoc">#table:
