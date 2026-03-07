@@ -608,6 +608,72 @@ static void test_table_body_only(void) {
     free(html);
 }
 
+static void test_table_cols_basic(void) {
+    char *html = render_ok(
+        "[#table cols=\"1 2 1\" :\n"
+        "  A | B | C\n"
+        "  1 | 2 | 3\n"
+        "]\n");
+    TEST_ASSERT_TRUE(contains(html, "<colgroup>"));
+    TEST_ASSERT_TRUE(contains(html, "</colgroup>"));
+    TEST_ASSERT_TRUE(contains(html, "<col style=\"width: 25%\">"));
+    TEST_ASSERT_TRUE(contains(html, "<col style=\"width: 50%\">"));
+    free(html);
+}
+
+static void test_table_cols_right_align(void) {
+    char *html = render_ok(
+        "[#table cols=\"1 >2 1\" :\n"
+        "  A | B | C\n"
+        "  1 | 2 | 3\n"
+        "]\n");
+    TEST_ASSERT_TRUE(contains(html, "<col style=\"width: 50%; text-align: right\">"));
+    free(html);
+}
+
+static void test_table_cols_left_align_explicit(void) {
+    char *html = render_ok(
+        "[#table cols=\"<1 2\" :\n"
+        "  A | B\n"
+        "  1 | 2\n"
+        "]\n");
+    /* < is a no-op, same as default — no text-align */
+    TEST_ASSERT_TRUE(contains(html, "<col style=\"width: 33%\">"));
+    TEST_ASSERT_FALSE(contains(html, "text-align"));
+    free(html);
+}
+
+static void test_table_cols_mismatch_error(void) {
+    render_err(
+        "[#table cols=\"1 2\" :\n"
+        "  A | B | C\n"
+        "  1 | 2 | 3\n"
+        "]\n",
+        "cols specifies 2 columns but row 1 has 3 cells");
+}
+
+static void test_table_cols_explicit_form(void) {
+    char *html = render_ok(
+        "[#table cols=\"1 >1\" :\n"
+        "  [#tr : [#th : Name] [#th : Age]]\n"
+        "  [#tr : [#td : Alice] [#td : 30]]\n"
+        "]\n");
+    TEST_ASSERT_TRUE(contains(html, "<colgroup>"));
+    TEST_ASSERT_TRUE(contains(html, "<col style=\"width: 50%\">"));
+    TEST_ASSERT_TRUE(contains(html, "<col style=\"width: 50%; text-align: right\">"));
+    free(html);
+}
+
+static void test_table_no_cols_unchanged(void) {
+    char *html = render_ok(
+        "[#table :\n"
+        "  [#tr : [#th : A] [#th : B]]\n"
+        "  [#tr : [#td : 1] [#td : 2]]\n"
+        "]\n");
+    TEST_ASSERT_FALSE(contains(html, "<colgroup>"));
+    free(html);
+}
+
 /* ========================================================================
  * 16. Wrapper tests
  * ======================================================================== */
@@ -997,6 +1063,12 @@ void run_test_render(void) {
     RUN_TEST(test_table_colspan);
     RUN_TEST(test_table_header_only);
     RUN_TEST(test_table_body_only);
+    RUN_TEST(test_table_cols_basic);
+    RUN_TEST(test_table_cols_right_align);
+    RUN_TEST(test_table_cols_left_align_explicit);
+    RUN_TEST(test_table_cols_mismatch_error);
+    RUN_TEST(test_table_cols_explicit_form);
+    RUN_TEST(test_table_no_cols_unchanged);
 
     /* 16. Wrappers */
     RUN_TEST(test_div_with_class_id);

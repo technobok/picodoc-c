@@ -925,10 +925,19 @@ static int expand_table(PdNode *node, EvalContext *ctx, NodeArray *out) {
         actual_row++;
     }
 
-    /* Build table */
+    /* Build table — clone original args (e.g. cols) */
     PdNode *table_body = pd_node_body(tr_nodes.items, tr_nodes.count,
                                       node->span);
-    PdNode *table_call = pd_node_macro_call("table", 5, NULL, 0,
+    PdNode **tbl_args = NULL;
+    int tbl_arg_count = 0;
+    if (node->as.macro_call.arg_count > 0) {
+        tbl_args = malloc((size_t)node->as.macro_call.arg_count * sizeof(PdNode *));
+        for (int i = 0; i < node->as.macro_call.arg_count; i++)
+            tbl_args[i] = pd_node_clone(node->as.macro_call.args[i]);
+        tbl_arg_count = node->as.macro_call.arg_count;
+    }
+    PdNode *table_call = pd_node_macro_call("table", 5,
+                                            tbl_args, tbl_arg_count,
                                             table_body,
                                             node->as.macro_call.bracketed,
                                             node->span);

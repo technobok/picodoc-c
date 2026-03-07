@@ -1468,6 +1468,25 @@ void test_eval_pipe_table_valid(void) {
     pd_node_free(result);
 }
 
+void test_eval_pipe_table_preserves_cols(void) {
+    PdNode *result = eval_ok("[#table cols=\"1 2 1\" :\n  A | B | C\n  1 | 2 | 3\n]\n");
+    TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
+    PdNode *table = result->as.document.children[0];
+    TEST_ASSERT_EQUAL_STRING("table", table->as.macro_call.name);
+    TEST_ASSERT_TRUE(table->as.macro_call.arg_count >= 1);
+    /* Find cols arg */
+    bool found = false;
+    for (int i = 0; i < table->as.macro_call.arg_count; i++) {
+        PdNode *arg = table->as.macro_call.args[i];
+        if (arg->type == NODE_NAMED_ARG &&
+            strcmp(arg->as.named_arg.name, "cols") == 0) {
+            found = true;
+        }
+    }
+    TEST_ASSERT_TRUE_MESSAGE(found, "cols arg should survive pipe expansion");
+    pd_node_free(result);
+}
+
 void test_eval_env_inherited_in_user_macro(void) {
     PdNode *defn_args[] = {mk_arg("name", "show-mode")};
     PdNode *defn_body[] = {mk_call0("env.mode")};
@@ -2032,6 +2051,7 @@ void run_test_eval(void) {
     RUN_TEST(test_eval_pipe_delimited_table);
     RUN_TEST(test_eval_no_pipe_table);
     RUN_TEST(test_eval_pipe_table_valid);
+    RUN_TEST(test_eval_pipe_table_preserves_cols);
 
     /* Validation — nesting */
     RUN_TEST(test_eval_td_outside_tr);

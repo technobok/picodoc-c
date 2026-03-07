@@ -820,6 +820,59 @@ static int render_li(const PdNode *node, RenderState *state) {
     return 0;
 }
 
+/* --- Table column spec --- */
+
+typedef struct {
+    int width;
+    char align;  /* '\0' = default, '>' = right, '<' = left (explicit) */
+} ColSpec;
+
+/*
+ * Parse a cols string like "1 >2 1" into an array of ColSpec.
+ * Returns stb_ds array (caller must arrfree). NULL on empty/NULL input.
+ */
+static ColSpec *parse_cols(const char *cols_str) {
+    if (!cols_str || cols_str[0] == '\0') return NULL;
+
+    ColSpec *specs = NULL;  /* stb_ds array */
+    const char *p = cols_str;
+
+    while (*p) {
+        /* Skip whitespace */
+        while (*p == ' ' || *p == '\t') p++;
+        if (*p == '\0') break;
+
+        ColSpec spec = {0, '\0'};
+        if (*p == '>' || *p == '<') {
+            spec.align = *p;
+            p++;
+        }
+
+        /* Parse integer width */
+        int w = 0;
+        while (*p >= '0' && *p <= '9') {
+            w = w * 10 + (*p - '0');
+            p++;
+        }
+        if (w == 0) w = 1;
+        spec.width = w;
+        arrput(specs, spec);
+    }
+
+    return specs;
+}
+
+static int count_row_cells(const PdNode *row) {
+    const PdNode *body = row->as.macro_call.body;
+    if (!body || body->type != NODE_BODY) return 0;
+    int count = 0;
+    for (int i = 0; i < body->as.body.count; i++) {
+        if (body->as.body.children[i]->type == NODE_MACRO_CALL)
+            count++;
+    }
+    return count;
+}
+
 /* --- Table rendering --- */
 
 static bool is_header_row(const PdNode *node) {
@@ -841,6 +894,31 @@ static bool is_header_row(const PdNode *node) {
 static int render_table(const PdNode *node, RenderState *state) {
     bcatcstr(state->out, "<table>\n");
 
+    /* Parse optional cols spec */
+    char *cols_str = get_arg_text(node, "cols");
+    ColSpec *col_specs = parse_cols(cols_str);
+    free(cols_str);
+    ptrdiff_t col_count = arrlen(col_specs);
+
+    /* Emit <colgroup> if cols specified */
+    if (col_count > 0) {
+        int total = 0;
+        for (ptrdiff_t i = 0; i < col_count; i++)
+            total += col_specs[i].width;
+
+        bcatcstr(state->out, "<colgroup>\n");
+        for (ptrdiff_t i = 0; i < col_count; i++) {
+            int pct = col_specs[i].width * 100 / total;
+            if (col_specs[i].align == '>') {
+                bformata(state->out,
+                    "<col style=\"width: %d%%; text-align: right\">\n", pct);
+            } else {
+                bformata(state->out, "<col style=\"width: %d%%\">\n", pct);
+            }
+        }
+        bcatcstr(state->out, "</colgroup>\n");
+    }
+
     const PdNode *body = node->as.macro_call.body;
     if (body && body->type == NODE_BODY) {
         /* Collect rows */
@@ -848,6 +926,26 @@ static int render_table(const PdNode *node, RenderState *state) {
         for (int i = 0; i < body->as.body.count; i++) {
             if (body->as.body.children[i]->type == NODE_MACRO_CALL) {
                 arrput(rows, body->as.body.children[i]);
+            }
+        }
+
+        /* Validate cell counts against cols */
+        if (col_count > 0) {
+            for (ptrdiff_t i = 0; i < arrlen(rows); i++) {
+                int cells = count_row_cells(rows[i]);
+                if (cells != (int)col_count) {
+                    char detail_buf[128];
+                    snprintf(detail_buf, sizeof(detail_buf),
+                        "cols specifies %d columns but row %d has %d cells",
+                        (int)col_count, (int)(i + 1), cells);
+                    char *detail = strdup(detail_buf);
+                    state->err->detail = detail;
+                    arrfree(rows);
+                    arrfree(col_specs);
+                    return pd_render_error(state->err, detail,
+                                           node->span,
+                                           state->source, state->filename);
+                }
             }
         }
 
@@ -865,7 +963,7 @@ static int render_table(const PdNode *node, RenderState *state) {
             bcatcstr(state->out, "<thead>\n");
             for (ptrdiff_t i = 0; i < head_end; i++) {
                 int rc = render_node(rows[i], state);
-                if (rc < 0) { arrfree(rows); return -1; }
+                if (rc < 0) { arrfree(rows); arrfree(col_specs); return -1; }
                 bcatcstr(state->out, "\n");
             }
             bcatcstr(state->out, "</thead>\n");
@@ -875,7 +973,7 @@ static int render_table(const PdNode *node, RenderState *state) {
             bcatcstr(state->out, "<tbody>\n");
             for (ptrdiff_t i = head_end; i < arrlen(rows); i++) {
                 int rc = render_node(rows[i], state);
-                if (rc < 0) { arrfree(rows); return -1; }
+                if (rc < 0) { arrfree(rows); arrfree(col_specs); return -1; }
                 bcatcstr(state->out, "\n");
             }
             bcatcstr(state->out, "</tbody>\n");
@@ -884,6 +982,7 @@ static int render_table(const PdNode *node, RenderState *state) {
         arrfree(rows);
     }
 
+    arrfree(col_specs);
     bcatcstr(state->out, "</table>");
     return 0;
 }

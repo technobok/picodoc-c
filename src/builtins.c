@@ -46,6 +46,7 @@ static const ParamDecl params_doc_content[] = {
 };
 static const ParamDecl params_doc_body[] = {{"class", false}, {"id", false}};
 static const ParamDecl params_doc_toc[]  = {{"level", false}};
+static const ParamDecl params_table[]    = {{"cols", false}};
 static const ParamDecl params_set[]      = {{"name", true}};
 static const ParamDecl params_ifeq[]     = {{"lhs", true}, {"rhs", true}};
 static const ParamDecl params_ifset[]    = {{"name", true}};
@@ -85,7 +86,7 @@ static const BuiltinDef BUILTINS[] = {
     B0("*",  true, false),
 
     /* Tables */
-    B0("table", true, true),
+    B("table", params_table, true, true),
     B0("tr",    true, false),
     B("td", params_td, true, false),
     B("th", params_td, true, false),
