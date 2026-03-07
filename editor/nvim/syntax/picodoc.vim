@@ -53,7 +53,7 @@ syn match picodocStructural /#li\>/
 syn region picodocComment start=/#\%(comment\|\/\/\)\s*:\s*\S/ end=/$/ contains=@NoSpell
 " Paragraph: nothing after colon, body continues until blank line
 syn region picodocComment start=/#\%(comment\|\/\/\)\s*:\s*$/ skip=/\n\s*\S/ end=/\n\|\%$/ contains=@NoSpell
-syn region picodocComment start=/\[#\%(comment\|\/\/\)\>/ end=/\]/ contains=@NoSpell
+syn region picodocComment start=/\[#\%(comment\>\|\/\/\)/ end=/\]/ contains=@NoSpell
 
 " --- Highlight links --------------------------------------------------------
 hi def link picodocComment      Comment

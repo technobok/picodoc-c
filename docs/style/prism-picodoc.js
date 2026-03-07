@@ -1,5 +1,9 @@
 Prism.languages.picodoc = {
-    'comment':    { pattern: /#\/\/.*/ },
+    'comment': [
+        { pattern: /\[#(?:comment\b|\/\/)[\s\S]*?\]/, greedy: true },
+        { pattern: /#(?:comment\b|\/\/)\s*:\s*\n(?:[ \t]*\S[^\n]*(?:\n|$))*/, greedy: true },
+        { pattern: /#(?:comment\b|\/\/).*/ }
+    ],
     'string':     [
         { pattern: /"{6}[\s\S]*?"{6}/, greedy: true },
         { pattern: /"{5}[\s\S]*?"{5}/, greedy: true },
