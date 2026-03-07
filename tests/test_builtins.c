@@ -2,33 +2,33 @@
 #include "builtins.h"
 #include <string.h>
 
-/* --- Alias resolution --- */
+/* --- Alternate form resolution --- */
 
-void test_alias_dash_h1(void) {
-    TEST_ASSERT_EQUAL_STRING("h1", resolve_alias("-"));
+void test_alternate_h1_to_dash(void) {
+    TEST_ASSERT_EQUAL_STRING("-", resolve_alias("h1"));
 }
 
-void test_alias_dashes(void) {
-    TEST_ASSERT_EQUAL_STRING("h2", resolve_alias("--"));
-    TEST_ASSERT_EQUAL_STRING("h3", resolve_alias("---"));
-    TEST_ASSERT_EQUAL_STRING("h4", resolve_alias("----"));
-    TEST_ASSERT_EQUAL_STRING("h5", resolve_alias("-----"));
-    TEST_ASSERT_EQUAL_STRING("h6", resolve_alias("------"));
+void test_alternate_headings(void) {
+    TEST_ASSERT_EQUAL_STRING("--", resolve_alias("h2"));
+    TEST_ASSERT_EQUAL_STRING("---", resolve_alias("h3"));
+    TEST_ASSERT_EQUAL_STRING("----", resolve_alias("h4"));
+    TEST_ASSERT_EQUAL_STRING("-----", resolve_alias("h5"));
+    TEST_ASSERT_EQUAL_STRING("------", resolve_alias("h6"));
 }
 
-void test_alias_formatting(void) {
-    TEST_ASSERT_EQUAL_STRING("b", resolve_alias("**"));
-    TEST_ASSERT_EQUAL_STRING("i", resolve_alias("__"));
+void test_alternate_formatting(void) {
+    TEST_ASSERT_EQUAL_STRING("**", resolve_alias("b"));
+    TEST_ASSERT_EQUAL_STRING("__", resolve_alias("i"));
 }
 
-void test_alias_misc(void) {
-    TEST_ASSERT_EQUAL_STRING("comment", resolve_alias("//"));
-    TEST_ASSERT_EQUAL_STRING("link", resolve_alias(">"));
+void test_alternate_misc(void) {
+    TEST_ASSERT_EQUAL_STRING("//", resolve_alias("comment"));
+    TEST_ASSERT_EQUAL_STRING(">", resolve_alias("link"));
     TEST_ASSERT_EQUAL_STRING("*", resolve_alias("li"));
 }
 
-void test_alias_unknown_passthrough(void) {
-    /* Non-alias names should be returned unchanged (same pointer). */
+void test_alternate_unknown_passthrough(void) {
+    /* Non-alternate names should be returned unchanged (same pointer). */
     const char *name = "p";
     TEST_ASSERT_EQUAL_PTR(name, resolve_alias(name));
 }
@@ -48,7 +48,7 @@ void test_find_builtin_unknown(void) {
 }
 
 void test_find_builtin_link_params(void) {
-    const BuiltinDef *b = find_builtin("link");
+    const BuiltinDef *b = find_builtin(">");
     TEST_ASSERT_NOT_NULL(b);
     TEST_ASSERT_EQUAL_INT(1, b->param_count);
     TEST_ASSERT_EQUAL_STRING("to", b->params[0].name);
@@ -112,17 +112,17 @@ void test_is_wrapper_tag_positive(void) {
 
 void test_is_wrapper_tag_negative(void) {
     TEST_ASSERT_FALSE(is_wrapper_tag("p"));
-    TEST_ASSERT_FALSE(is_wrapper_tag("h1"));
+    TEST_ASSERT_FALSE(is_wrapper_tag("-"));
     TEST_ASSERT_FALSE(is_wrapper_tag("table"));
-    TEST_ASSERT_FALSE(is_wrapper_tag("b"));
+    TEST_ASSERT_FALSE(is_wrapper_tag("**"));
     TEST_ASSERT_FALSE(is_wrapper_tag("nonexistent"));
 }
 
 /* --- is_block_macro --- */
 
 void test_is_block_macro_positive(void) {
-    TEST_ASSERT_TRUE(is_block_macro("h1"));
-    TEST_ASSERT_TRUE(is_block_macro("h6"));
+    TEST_ASSERT_TRUE(is_block_macro("-"));
+    TEST_ASSERT_TRUE(is_block_macro("------"));
     TEST_ASSERT_TRUE(is_block_macro("p"));
     TEST_ASSERT_TRUE(is_block_macro("hr"));
     TEST_ASSERT_TRUE(is_block_macro("ul"));
@@ -133,20 +133,20 @@ void test_is_block_macro_positive(void) {
 }
 
 void test_is_block_macro_negative(void) {
-    TEST_ASSERT_FALSE(is_block_macro("b"));
-    TEST_ASSERT_FALSE(is_block_macro("i"));
-    TEST_ASSERT_FALSE(is_block_macro("link"));
+    TEST_ASSERT_FALSE(is_block_macro("**"));
+    TEST_ASSERT_FALSE(is_block_macro("__"));
+    TEST_ASSERT_FALSE(is_block_macro(">"));
     TEST_ASSERT_FALSE(is_block_macro("~"));
     TEST_ASSERT_FALSE(is_block_macro("*"));
     TEST_ASSERT_FALSE(is_block_macro("nonexistent"));
 }
 
 void run_test_builtins(void) {
-    RUN_TEST(test_alias_dash_h1);
-    RUN_TEST(test_alias_dashes);
-    RUN_TEST(test_alias_formatting);
-    RUN_TEST(test_alias_misc);
-    RUN_TEST(test_alias_unknown_passthrough);
+    RUN_TEST(test_alternate_h1_to_dash);
+    RUN_TEST(test_alternate_headings);
+    RUN_TEST(test_alternate_formatting);
+    RUN_TEST(test_alternate_misc);
+    RUN_TEST(test_alternate_unknown_passthrough);
     RUN_TEST(test_find_builtin_known);
     RUN_TEST(test_find_builtin_unknown);
     RUN_TEST(test_find_builtin_link_params);

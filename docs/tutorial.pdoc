@@ -81,8 +81,8 @@ Or (C version):
     """
 
 Open [#~"hello.html"] in your browser. You should see a heading and a
-paragraph. The \#doc.title macro sets the browser tab title, while \#- (alias
-for \#h1) creates a visible heading. The bare text was automatically wrapped
+paragraph. The \#doc.title macro sets the browser tab title, while \#-
+creates a visible heading. The bare text was automatically wrapped
 in a [#~"<p>"] tag because PicoDoc treats any text not inside a macro
 call as an implicit paragraph.
 
@@ -93,23 +93,23 @@ browser tab) and separate heading macros for visible headings in the body:
 
 #code language=picodoc: """
     #doc.title: Page Title (in browser tab only)
-    #h1: Level 1 (visible heading)
-    #h2: Level 2 (Section)
-    #h3: Level 3 (Subsection)
-    #h4: Level 4
-    #h5: Level 5
-    #h6: Level 6
+    #-: Level 1 (visible heading)
+    #--: Level 2 (Section)
+    #---: Level 3 (Subsection)
+    #----: Level 4
+    #-----: Level 5
+    #------: Level 6
     """
 
-All heading levels have dash aliases:
+The named forms \#h1 through \#h6 can also be used:
 
 #code language=picodoc: """
-    #-: Level 1 (same as #h1)
-    #--: Level 2 (same as #h2)
-    #---: Level 3 (same as #h3)
-    #----: Level 4 (same as #h4)
-    #-----: Level 5 (same as #h5)
-    #------: Level 6 (same as #h6)
+    #h1: Level 1 (same as #-)
+    #h2: Level 2 (same as #--)
+    #h3: Level 3 (same as #---)
+    #h4: Level 4 (same as #----)
+    #h5: Level 5 (same as #-----)
+    #h6: Level 6 (same as #------)
     """
 
 Use [#~"#hr"] for a horizontal rule and [#~"#//"] (or [#~"#comment"])
@@ -148,7 +148,7 @@ write the body on the following lines:
 
 #---: Bold and Italic
 
-Use \#b (or its alias \#**) for bold and \#i (or \#__) for italic:
+Use \#** (or \#b) for bold and \#__ (or \#i) for italic:
 
 #code language=picodoc: """
     This is #**"bold" text.
@@ -178,12 +178,12 @@ strong):
 
 #---: Links
 
-Use [#~"#link"] (or its alias [#~"#>"]) with a [#~"to"] argument
+Use [#~"#>"] (or [#~"#link"]) with a [#~"to"] argument
 and optional body for the link text:
 
 #code language=picodoc: """
-    Visit [#link to="https://example.com" : Example Site] today.
-    [#> to="https://example.com" : Short form with alias]
+    Visit [#> to="https://example.com" : Example Site] today.
+    [#link to="https://example.com" : Using the alternate form]
     """
 
 If no body is provided, the [#~"to"] value is used as the link text.
@@ -203,7 +203,7 @@ All inline formatting can appear together in a paragraph:
 
 #---: Unordered Lists
 
-Wrap list items in \#ul. Each item uses \#* (or its alias \#li):
+Wrap list items in \#ul. Each item uses \#* (or \#li):
 
 #code language=picodoc: """
     [#ul :

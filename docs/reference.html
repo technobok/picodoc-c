@@ -132,7 +132,7 @@ Table of Contents</div>
 </li>
 <li><a href="#expansion-time-macros">Expansion-Time Macros</a>
 </li>
-<li><a href="#alias-table">Alias Table</a>
+<li><a href="#alternate-forms">Alternate Forms</a>
 </li>
 </ul>
 </li>
@@ -264,7 +264,7 @@ valid list for the current context is a syntax error.</p>
 <p>Note that <code>\[</code> has different meaning in the two contexts: in prose it
 produces a literal [, while in strings it enters code mode.</p>
 <h3 id="comments"><a href="#comments">2.3. Comments</a></h3>
-<p>The #comment macro (alias #//) removes its body from the output entirely.
+<p>The #// macro (also #comment) removes its body from the output entirely.
 Three forms are available:</p>
 <ol>
 <li><strong>Inline</strong> (colon body to end of line): <code>#//: This text will not appear.</code></li>
@@ -425,27 +425,27 @@ minimum common prefix directly.</p>
 At least one non-quote character must separate consecutive string literals.
 This prevents a mismatched quote from silently cascading through the file.</p>
 <h2 id="builtin-macros"><a href="#builtin-macros">5. Builtin Macros</a></h2>
-<p>PicoDoc has 44 builtin macros in 8 categories, plus 11 aliases.</p>
+<p>PicoDoc has 44 builtin macros in 8 categories, plus 11 alternate forms.</p>
 <h3 id="structural-macros"><a href="#structural-macros">5.1. Structural Macros</a></h3>
-<h4 id="h1"><a href="#h1">5.1.1. #h1</a></h4>
-<p>Alias: #-. Top-level heading. Renders as <code>&lt;h1&gt;</code> in the document body.
+<h4 id="heading"><a href="#heading">5.1.1. #-</a></h4>
+<p>Also: #h1. Top-level heading. Renders as <code>&lt;h1&gt;</code> in the document body.
 Takes body, no parameters.</p>
-<pre><code class="language-picodoc">#h1: Main Heading
-#-: Alias form</code></pre>
-<h4 id="h2"><a href="#h2">5.1.2. #h2</a></h4>
-<p>Alias: #--. Section heading. Renders as <code>&lt;h2&gt;</code>. Takes body, no
+<pre><code class="language-picodoc">#-: Main Heading
+#h1: Alternate form</code></pre>
+<h4 id="heading-2"><a href="#heading-2">5.1.2. #--</a></h4>
+<p>Also: #h2. Section heading. Renders as <code>&lt;h2&gt;</code>. Takes body, no
 parameters.</p>
-<h4 id="h3"><a href="#h3">5.1.3. #h3</a></h4>
-<p>Alias: #---. Subsection heading. Renders as <code>&lt;h3&gt;</code>. Takes body, no
+<h4 id="heading-3"><a href="#heading-3">5.1.3. #---</a></h4>
+<p>Also: #h3. Subsection heading. Renders as <code>&lt;h3&gt;</code>. Takes body, no
 parameters.</p>
-<h4 id="h4"><a href="#h4">5.1.4. #h4</a></h4>
-<p>Alias: #----. Lower-level heading. Renders as <code>&lt;h4&gt;</code>. Takes body, no
+<h4 id="heading-4"><a href="#heading-4">5.1.4. #----</a></h4>
+<p>Also: #h4. Lower-level heading. Renders as <code>&lt;h4&gt;</code>. Takes body, no
 parameters.</p>
-<h4 id="h5"><a href="#h5">5.1.5. #h5</a></h4>
-<p>Alias: #-----. Lower-level heading. Renders as <code>&lt;h5&gt;</code>. Takes body, no
+<h4 id="heading-5"><a href="#heading-5">5.1.5. #-----</a></h4>
+<p>Also: #h5. Lower-level heading. Renders as <code>&lt;h5&gt;</code>. Takes body, no
 parameters.</p>
-<h4 id="h6"><a href="#h6">5.1.6. #h6</a></h4>
-<p>Alias: #------. Lower-level heading. Renders as <code>&lt;h6&gt;</code>. Takes body, no
+<h4 id="heading-6"><a href="#heading-6">5.1.6. #------</a></h4>
+<p>Also: #h6. Lower-level heading. Renders as <code>&lt;h6&gt;</code>. Takes body, no
 parameters.</p>
 <h4 id="p"><a href="#p">5.1.7. #p</a></h4>
 <p>Paragraph. Renders as <code>&lt;p&gt;</code>. Takes body, no parameters. Bare text
@@ -456,28 +456,28 @@ This bare text is also a paragraph.</code></pre>
 <h4 id="hr"><a href="#hr">5.1.8. #hr</a></h4>
 <p>Horizontal rule. Renders as <code>&lt;hr&gt;</code>. No parameters, no body.</p>
 <h3 id="inline-macros"><a href="#inline-macros">5.2. Inline Macros</a></h3>
-<h4 id="b"><a href="#b">5.2.1. #b</a></h4>
-<p>Alias: #**. Bold text. Renders as <code>&lt;strong&gt;</code>. Takes body, no
+<h4 id="heading-7"><a href="#heading-7">5.2.1. #**</a></h4>
+<p>Also: #b. Bold text. Renders as <code>&lt;strong&gt;</code>. Takes body, no
 parameters.</p>
 <pre><code class="language-picodoc">This is #**"bold" text.
-This is [#b : also bold] text.</code></pre>
-<h4 id="i"><a href="#i">5.2.2. #i</a></h4>
-<p>Alias: #__. Italic text. Renders as <code>&lt;em&gt;</code>. Takes body, no
+This is [#** : also bold] text.</code></pre>
+<h4 id="heading-8"><a href="#heading-8">5.2.2. #__</a></h4>
+<p>Also: #i. Italic text. Renders as <code>&lt;em&gt;</code>. Takes body, no
 parameters.</p>
 <pre><code class="language-picodoc">This is #__"italic" text.
-This is [#i : also italic] text.</code></pre>
-<h4 id="heading"><a href="#heading">5.2.3. #*_</a></h4>
+This is [#__ : also italic] text.</code></pre>
+<h4 id="heading-9"><a href="#heading-9">5.2.3. #*_</a></h4>
 <p>Bold italic. Renders as <code>&lt;strong&gt;&lt;em&gt;</code> (strong wrapping em). Takes body,
 no parameters.</p>
 <pre><code class="language-picodoc">This is [#*_: bold italic] text.
 This is #*_"also bold italic" text.</code></pre>
-<h4 id="heading-2"><a href="#heading-2">5.2.4. #_*</a></h4>
+<h4 id="heading-10"><a href="#heading-10">5.2.4. #_*</a></h4>
 <p>Italic bold. Renders as <code>&lt;em&gt;&lt;strong&gt;</code> (em wrapping strong). Takes body,
 no parameters.</p>
 <pre><code class="language-picodoc">This is [#_*: italic bold] text.
 This is #_*"also italic bold" text.</code></pre>
-<h4 id="link"><a href="#link">5.2.5. #link</a></h4>
-<p>Alias: #&gt;. Hyperlink. Renders as <code>&lt;a&gt;</code>. Parameters:</p>
+<h4 id="heading-11"><a href="#heading-11">5.2.5. #&gt;</a></h4>
+<p>Also: #link. Hyperlink. Renders as <code>&lt;a&gt;</code>. Parameters:</p>
 <table>
 <thead>
 <tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
@@ -501,12 +501,12 @@ heading text without section numbers.</li>
 <li><strong>Validation</strong> : the target must match a heading anchor in the
 document. A broken internal link is a render error.</li>
 </ul>
-<pre><code class="language-picodoc">[#link to="https://example.com" : Click here]
-[#&gt; to="https://example.com" : Alias form]
-[#link to=section1 : Jump to section]
-[#link to=section1]
-[#link to=page/about : About page]
-[#link : https://example.com]
+<pre><code class="language-picodoc">[#&gt; to="https://example.com" : Click here]
+[#link to="https://example.com" : Alternate form]
+[#&gt; to=section1 : Jump to section]
+[#&gt; to=section1]
+[#&gt; to=page/about : About page]
+[#&gt; : https://example.com]
 [#&gt; : section1]</code></pre>
 <h3 id="code-and-literal-macros"><a href="#code-and-literal-macros">5.3. Code and Literal Macros</a></h3>
 <h4 id="code"><a href="#code">5.3.1. #code</a></h4>
@@ -531,7 +531,7 @@ automatically:</p>
     def hello():
         print("world")
 </code></pre>
-<h4 id="heading-3"><a href="#heading-3">5.3.2. #~</a></h4>
+<h4 id="heading-12"><a href="#heading-12">5.3.2. #~</a></h4>
 <p>Inline code. Renders as <code>&lt;code&gt;</code>. Parameters:</p>
 <table>
 <thead>
@@ -560,8 +560,8 @@ contain only #* (list item) elements.</p>
 <h4 id="ol"><a href="#ol">5.4.2. #ol</a></h4>
 <p>Ordered list. Renders as <code>&lt;ol&gt;</code>. Takes body, no parameters. Body must
 contain only #* (list item) elements.</p>
-<h4 id="heading-4"><a href="#heading-4">5.4.3. #*</a></h4>
-<p>Alias: #li. List item. Renders as <code>&lt;li&gt;</code>. Takes body, no parameters.
+<h4 id="heading-13"><a href="#heading-13">5.4.3. #*</a></h4>
+<p>Also: #li. List item. Renders as <code>&lt;li&gt;</code>. Takes body, no parameters.
 Must appear inside #ul or #ol.</p>
 <pre><code class="language-picodoc">[#ul :
   #*: First item
@@ -822,7 +822,7 @@ control:</p>
 <pre><code class="language-picodoc">[#nav id=toc class=sidebar-toc :
   #doc.toc level=3
 ]</code></pre>
-<p>All headings (#h1 through #h6) automatically receive an <code>id</code>
+<p>All headings (#- through #------) automatically receive an <code>id</code>
 attribute based on their text content. The slug algorithm lowercases the text,
 replaces non-alphanumeric characters with hyphens, collapses consecutive
 hyphens, and strips leading/trailing hyphens. Duplicate heading texts produce
@@ -906,7 +906,7 @@ when #doc.heading.number is also active.</p>
 <h3 id="expansion-time-macros"><a href="#expansion-time-macros">5.8. Expansion-Time Macros</a></h3>
 <p>These macros are fully resolved during evaluation and do not appear in the
 final AST.</p>
-<p>The #comment macro (alias #//) removes its body from the output. Takes body,
+<p>The #// macro (also #comment) removes its body from the output. Takes body,
 no parameters.</p>
 <p>The #set macro defines a user macro. See the User-Defined Macros section
 below.</p>
@@ -958,23 +958,23 @@ platforms. Backslashes in the filename are normalized to forward slashes.</p>
 <p>When <code>literal=true</code> is set, the file contents are included as raw text
 without parsing or macro expansion. This is useful for including source code
 or other non-PicoDoc content.</p>
-<h3 id="alias-table"><a href="#alias-table">5.9. Alias Table</a></h3>
-<p>All 11 aliases mapped to their canonical names:</p>
+<h3 id="alternate-forms"><a href="#alternate-forms">5.9. Alternate Forms</a></h3>
+<p>All 11 alternate forms mapped to their canonical commands:</p>
 <table>
 <thead>
-<tr><th>Alias</th><th>Canonical</th></tr>
+<tr><th>Alternate</th><th>Canonical</th></tr>
 </thead>
 <tbody>
-<tr><td>#-</td><td>#h1</td></tr>
-<tr><td>#--</td><td>#h2</td></tr>
-<tr><td>#---</td><td>#h3</td></tr>
-<tr><td>#----</td><td>#h4</td></tr>
-<tr><td>#-----</td><td>#h5</td></tr>
-<tr><td>#------</td><td>#h6</td></tr>
-<tr><td>#//</td><td>#comment</td></tr>
-<tr><td>#&gt;</td><td>#link</td></tr>
-<tr><td>#**</td><td>#b</td></tr>
-<tr><td>#__</td><td>#i</td></tr>
+<tr><td>#h1</td><td>#-</td></tr>
+<tr><td>#h2</td><td>#--</td></tr>
+<tr><td>#h3</td><td>#---</td></tr>
+<tr><td>#h4</td><td>#----</td></tr>
+<tr><td>#h5</td><td>#-----</td></tr>
+<tr><td>#h6</td><td>#------</td></tr>
+<tr><td>#comment</td><td>#//</td></tr>
+<tr><td>#link</td><td>#&gt;</td></tr>
+<tr><td>#b</td><td>#**</td></tr>
+<tr><td>#i</td><td>#__</td></tr>
 <tr><td>#li</td><td>#*</td></tr>
 </tbody>
 </table>
@@ -1024,14 +1024,15 @@ shadow any definitions outside the macro call with the same name.</p>
 how standard elements are rendered without losing access to the original
 behaviour.</p>
 <p>Expansion-time builtins (#set, #ifeq, #ifne, #ifset, #include,
-#comment, #table) cannot be overridden. Attempting to define a macro with
+#//, #table) cannot be overridden. Attempting to define a macro with
 the same name as an expansion-time builtin is an error.</p>
 <pre><code class="language-picodoc">[#set name=p body=? : [#builtin.p : [#b : #body]]]
 #p: Every paragraph is now bold.</code></pre>
 <h4 id="the-builtin-prefix"><a href="#the-builtin-prefix">6.7.1. The #builtin.* Prefix</a></h4>
 <p>Inside a user macro definition (or anywhere else), use #builtin.name to call
-the original builtin, bypassing the user-defined override. Alias resolution
-applies after the prefix, so <code>#builtin.**</code> resolves to the builtin #b.</p>
+the original builtin, bypassing the user-defined override. Alternate form
+resolution applies after the prefix, so <code>#builtin.b</code> resolves to the
+builtin #**.</p>
 <pre><code class="language-picodoc">    [#set name=code body=? :
       [#div class=code-wrapper :
         [#builtin.code : #body]
@@ -1045,7 +1046,7 @@ with <code>builtin.</code> is an error:</p>
 <pre><code class="language-picodoc">[#set name=builtin.foo : bar]
 [#//: Error: reserved namespace: cannot define 'builtin.foo']</code></pre>
 <p>If the name after <code>builtin.</code> does not match any builtin macro (after
-alias resolution), an evaluation error is raised.</p>
+alternate form resolution), an evaluation error is raised.</p>
 <h3 id="macro-references-as-argument-values"><a href="#macro-references-as-argument-values">6.8. Macro References as Argument Values</a></h3>
 <p>A zero-argument macro (variable) can be passed as an argument value using
 the #identifier form:</p>

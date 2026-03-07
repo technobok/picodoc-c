@@ -18,9 +18,9 @@ typedef struct {
     bool expansion_time;   /* true = cannot be shadowed by user macros */
 } BuiltinDef;
 
-/* Alias entry: maps a shorthand to a canonical builtin name. */
+/* Alternate form entry: maps a longer name to its canonical short form. */
 typedef struct {
-    const char *alias;
+    const char *alternate;
     const char *canonical;
 } AliasEntry;
 
@@ -30,8 +30,8 @@ const BuiltinDef *pd_builtin_at(int index);
 int pd_alias_count(void);
 const AliasEntry *pd_alias_at(int index);
 
-/* Resolve heading/formatting aliases: "-" -> "h1", "**" -> "b", etc.
- * Returns the canonical name, or the input name if not an alias. */
+/* Resolve alternate forms to canonical names: "h1" -> "-", "b" -> "**", etc.
+ * Returns the canonical name, or the input name if not an alternate. */
 const char *resolve_alias(const char *name);
 
 /* Look up a builtin definition by canonical name.
@@ -43,7 +43,7 @@ const BuiltinDef *find_builtin(const char *name);
 bool is_wrapper_tag(const char *name);
 
 /* Returns true if the name is a block-level macro
- * (h1-h6, p, hr, ul, ol, table, div, section, nav, etc.). */
+ * (- through ------, p, hr, ul, ol, table, div, section, nav, etc.). */
 bool is_block_macro(const char *name);
 
 #endif /* PD_BUILTINS_H */

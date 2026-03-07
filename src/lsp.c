@@ -355,20 +355,20 @@ static char *format_builtin_hover(const char *name) {
     bstring s = bfromcstr("");
     bformata(s, "**#%s** (builtin)", defn->name);
 
-    /* Aliases that map to this builtin. */
-    bstring aliases = bfromcstr("");
-    int alias_n = pd_alias_count();
-    for (int i = 0; i < alias_n; i++) {
+    /* Alternate forms that map to this builtin. */
+    bstring alts = bfromcstr("");
+    int alt_n = pd_alias_count();
+    for (int i = 0; i < alt_n; i++) {
         const AliasEntry *a = pd_alias_at(i);
         if (strcmp(a->canonical, name) == 0) {
-            if (blength(aliases) > 0)
-                bcatcstr(aliases, ", ");
-            bformata(aliases, "`#%s`", a->alias);
+            if (blength(alts) > 0)
+                bcatcstr(alts, ", ");
+            bformata(alts, "`#%s`", a->alternate);
         }
     }
-    if (blength(aliases) > 0)
-        bformata(s, "\n\nAliases: %s", bdata(aliases));
-    bdestroy(aliases);
+    if (blength(alts) > 0)
+        bformata(s, "\n\nAlso: %s", bdata(alts));
+    bdestroy(alts);
 
     /* Parameters. */
     if (defn->param_count > 0) {
@@ -622,14 +622,14 @@ static void handle_completion(cJSON *id, cJSON *params, LspDoc *doc) {
         bdestroy(detail);
     }
 
-    /* Aliases. */
+    /* Alternate forms. */
     int an = pd_alias_count();
     for (int i = 0; i < an; i++) {
         const AliasEntry *a = pd_alias_at(i);
         char label[128];
-        snprintf(label, sizeof(label), "#%s", a->alias);
+        snprintf(label, sizeof(label), "#%s", a->alternate);
         char det[128];
-        snprintf(det, sizeof(det), "alias for #%s", a->canonical);
+        snprintf(det, sizeof(det), "same as #%s", a->canonical);
 
         cJSON *item = cJSON_CreateObject();
         cJSON_AddStringToObject(item, "label", label);

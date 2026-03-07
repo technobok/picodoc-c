@@ -96,9 +96,14 @@ static char *arg_value_text(const PdNode *value);
 /* --- Heading level helpers --- */
 
 static int heading_level(const char *name) {
-    if (name[0] == 'h' && name[1] >= '1' && name[1] <= '6' && name[2] == '\0')
-        return name[1] - '0';
-    return 0;
+    if (name[0] != '-')
+        return 0;
+    int level = 0;
+    while (name[level] == '-')
+        level++;
+    if (name[level] != '\0' || level > 6)
+        return 0;
+    return level;
 }
 
 static bool is_heading(const char *name) {
@@ -1338,14 +1343,14 @@ static int render_node(const PdNode *node, RenderState *state) {
         bcatcstr(state->out, "<hr>");
         return 0;
     }
-    if (strcmp(name, "b") == 0) {
+    if (strcmp(name, "**") == 0) {
         bcatcstr(state->out, "<strong>");
         int rc = render_body(node->as.macro_call.body, state);
         if (rc < 0) return -1;
         bcatcstr(state->out, "</strong>");
         return 0;
     }
-    if (strcmp(name, "i") == 0) {
+    if (strcmp(name, "__") == 0) {
         bcatcstr(state->out, "<em>");
         int rc = render_body(node->as.macro_call.body, state);
         if (rc < 0) return -1;
@@ -1366,7 +1371,7 @@ static int render_node(const PdNode *node, RenderState *state) {
         bcatcstr(state->out, "</strong></em>");
         return 0;
     }
-    if (strcmp(name, "link") == 0) {
+    if (strcmp(name, ">") == 0) {
         return render_link(node, state);
     }
     if (strcmp(name, "code") == 0) {

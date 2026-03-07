@@ -1491,7 +1491,7 @@ static int expand_macro(PdNode *node, EvalContext *ctx, NodeArray *out) {
     }
 
     /* Comment — discard */
-    if (strcmp(name, "comment") == 0)
+    if (strcmp(name, "//") == 0)
         return 0;
 
     /* Set */
@@ -1678,9 +1678,9 @@ static bool is_in_nesting_rules(const char *name, const char *parent,
 static bool is_inline_context(const char *name) {
     return name && (
         strcmp(name, "p") == 0 ||
-        strcmp(name, "b") == 0 ||
-        strcmp(name, "i") == 0 ||
-        strcmp(name, "link") == 0 ||
+        strcmp(name, "**") == 0 ||
+        strcmp(name, "__") == 0 ||
+        strcmp(name, ">") == 0 ||
         strcmp(name, "~") == 0 ||
         strcmp(name, "span") == 0 ||
         strcmp(name, "literal") == 0

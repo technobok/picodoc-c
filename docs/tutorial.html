@@ -189,27 +189,27 @@ This is my first document.</code></pre>
 <p>Or (C version):</p>
 <pre><code>path/picodoc hello.pdoc -o hello.html</code></pre>
 <p>Open <code>hello.html</code> in your browser. You should see a heading and a
-paragraph. The #doc.title macro sets the browser tab title, while #- (alias
-for #h1) creates a visible heading. The bare text was automatically wrapped
+paragraph. The #doc.title macro sets the browser tab title, while #-
+creates a visible heading. The bare text was automatically wrapped
 in a <code>&lt;p&gt;</code> tag because PicoDoc treats any text not inside a macro
 call as an implicit paragraph.</p>
 <h2 id="headings-and-structure"><a href="#headings-and-structure">5. Headings and Structure</a></h2>
 <p>PicoDoc uses #doc.title for the document's <code>&lt;title&gt;</code> (shown in the
 browser tab) and separate heading macros for visible headings in the body:</p>
 <pre><code class="language-picodoc">#doc.title: Page Title (in browser tab only)
-#h1: Level 1 (visible heading)
-#h2: Level 2 (Section)
-#h3: Level 3 (Subsection)
-#h4: Level 4
-#h5: Level 5
-#h6: Level 6</code></pre>
-<p>All heading levels have dash aliases:</p>
-<pre><code class="language-picodoc">#-: Level 1 (same as #h1)
-#--: Level 2 (same as #h2)
-#---: Level 3 (same as #h3)
-#----: Level 4 (same as #h4)
-#-----: Level 5 (same as #h5)
-#------: Level 6 (same as #h6)</code></pre>
+#-: Level 1 (visible heading)
+#--: Level 2 (Section)
+#---: Level 3 (Subsection)
+#----: Level 4
+#-----: Level 5
+#------: Level 6</code></pre>
+<p>The named forms #h1 through #h6 can also be used:</p>
+<pre><code class="language-picodoc">#h1: Level 1 (same as #-)
+#h2: Level 2 (same as #--)
+#h3: Level 3 (same as #---)
+#h4: Level 4 (same as #----)
+#h5: Level 5 (same as #-----)
+#h6: Level 6 (same as #------)</code></pre>
 <p>Use <code>#hr</code> for a horizontal rule and <code>#//</code> (or <code>#comment</code>)
 for text that should not appear in the output:</p>
 <pre><code class="language-picodoc">#hr
@@ -231,7 +231,7 @@ A multi-line paragraph using
 the paragraph body form.</code></pre>
 <h2 id="inline-formatting"><a href="#inline-formatting">7. Inline Formatting</a></h2>
 <h3 id="bold-and-italic"><a href="#bold-and-italic">7.1. Bold and Italic</a></h3>
-<p>Use #b (or its alias #**) for bold and #i (or #__) for italic:</p>
+<p>Use #** (or #b) for bold and #__ (or #i) for italic:</p>
 <pre><code class="language-picodoc">This is #**"bold" text.
 This is #__"italic" text.</code></pre>
 <p>For longer spans, use the bracketed form:</p>
@@ -244,10 +244,10 @@ strong):</p>
 <pre><code class="language-picodoc">This is #*_"bold italic" text.
 This is [#_*: italic bold] text.</code></pre>
 <h3 id="links"><a href="#links">7.2. Links</a></h3>
-<p>Use <code>#link</code> (or its alias <code>#&gt;</code>) with a <code>to</code> argument
+<p>Use <code>#&gt;</code> (or <code>#link</code>) with a <code>to</code> argument
 and optional body for the link text:</p>
-<pre><code class="language-picodoc">Visit [#link to="https://example.com" : Example Site] today.
-[#&gt; to="https://example.com" : Short form with alias]</code></pre>
+<pre><code class="language-picodoc">Visit [#&gt; to="https://example.com" : Example Site] today.
+[#link to="https://example.com" : Using the alternate form]</code></pre>
 <p>If no body is provided, the <code>to</code> value is used as the link text.
 If <code>to</code> contains no <code>://</code> and no <code>/</code>, it is treated as
 a fragment reference (e.g. <code>to=section1</code> produces <code>href="#section1"</code>).</p>
@@ -257,7 +257,7 @@ a fragment reference (e.g. <code>to=section1</code> produces <code>href="#sectio
 [#link to="https://example.com" : a link] all in one line.</code></pre>
 <h2 id="lists"><a href="#lists">8. Lists</a></h2>
 <h3 id="unordered-lists"><a href="#unordered-lists">8.1. Unordered Lists</a></h3>
-<p>Wrap list items in #ul. Each item uses #* (or its alias #li):</p>
+<p>Wrap list items in #ul. Each item uses #* (or #li):</p>
 <pre><code class="language-picodoc">[#ul :
   #*: First item
   #*: Second item

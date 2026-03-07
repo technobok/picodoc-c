@@ -71,10 +71,11 @@ Add to `.vscode/settings.json` (requires a generic LSP client extension):
 
 - **Diagnostics**: lex/parse errors (Error severity) and eval errors (Warning)
   on every save/change.
-- **Hover**: shows builtin info (parameters, aliases, body) or user-defined
-  macro info (parameters, definition location).
+- **Hover**: shows builtin info (parameters, alternate forms, body) or
+  user-defined macro info (parameters, definition location).
 - **Go-to-definition**: jumps to the `#set` that defines a user macro.
-- **Completion**: lists all builtins, aliases, and user-defined macros after `#`.
+- **Completion**: lists all builtins, alternate forms, and user-defined macros
+  after `#`.
 
 ## Project structure
 

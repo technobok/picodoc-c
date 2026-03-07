@@ -1,28 +1,28 @@
 #include "builtins.h"
 #include <string.h>
 
-/* --- Alias table --- */
+/* --- Alternate forms table --- */
 
-static const AliasEntry ALIASES[] = {
-    {"-",      "h1"},
-    {"--",     "h2"},
-    {"---",    "h3"},
-    {"----",   "h4"},
-    {"-----",  "h5"},
-    {"------", "h6"},
-    {"//",     "comment"},
-    {">",      "link"},
-    {"**",     "b"},
-    {"__",     "i"},
-    {"li",     "*"},
+static const AliasEntry ALTERNATES[] = {
+    {"h1",      "-"},
+    {"h2",      "--"},
+    {"h3",      "---"},
+    {"h4",      "----"},
+    {"h5",      "-----"},
+    {"h6",      "------"},
+    {"comment", "//"},
+    {"link",    ">"},
+    {"b",       "**"},
+    {"i",       "__"},
+    {"li",      "*"},
 };
 
-#define ALIAS_COUNT ((int)(sizeof(ALIASES) / sizeof(ALIASES[0])))
+#define ALTERNATE_COUNT ((int)(sizeof(ALTERNATES) / sizeof(ALTERNATES[0])))
 
 const char *resolve_alias(const char *name) {
-    for (int i = 0; i < ALIAS_COUNT; i++) {
-        if (strcmp(name, ALIASES[i].alias) == 0)
-            return ALIASES[i].canonical;
+    for (int i = 0; i < ALTERNATE_COUNT; i++) {
+        if (strcmp(name, ALTERNATES[i].alternate) == 0)
+            return ALTERNATES[i].canonical;
     }
     return name;
 }
@@ -59,21 +59,21 @@ static const ParamDecl params_include[]  = {{"literal", false}};
 
 static const BuiltinDef BUILTINS[] = {
     /* Structural */
-    B0("h1", true, false),
-    B0("h2", true, false),
-    B0("h3", true, false),
-    B0("h4", true, false),
-    B0("h5", true, false),
-    B0("h6", true, false),
+    B0("-",      true, false),
+    B0("--",     true, false),
+    B0("---",    true, false),
+    B0("----",   true, false),
+    B0("-----",  true, false),
+    B0("------", true, false),
     B0("p",  true, false),
     B0("hr", false, false),
 
     /* Inline */
-    B0("b", true, false),
-    B0("i", true, false),
+    B0("**", true, false),
+    B0("__", true, false),
     B0("*_", true, false),
     B0("_*", true, false),
-    B("link", params_link, true, false),
+    B(">", params_link, true, false),
 
     /* Code / literal */
     B("code", params_code, true, false),
@@ -119,7 +119,7 @@ static const BuiltinDef BUILTINS[] = {
     B("doc.heading.anchor", params_doc_toc, false, false),
 
     /* Expansion-time */
-    B0("comment", true, true),
+    B0("//", true, true),
     B("set",     params_set,     true, true),
     B("ifeq",    params_ifeq,   true, true),
     B("ifne",    params_ifeq,   true, true),
@@ -142,8 +142,8 @@ const BuiltinDef *find_builtin(const char *name) {
 
 int pd_builtin_count(void) { return BUILTIN_COUNT; }
 const BuiltinDef *pd_builtin_at(int index) { return &BUILTINS[index]; }
-int pd_alias_count(void) { return ALIAS_COUNT; }
-const AliasEntry *pd_alias_at(int index) { return &ALIASES[index]; }
+int pd_alias_count(void) { return ALTERNATE_COUNT; }
+const AliasEntry *pd_alias_at(int index) { return &ALTERNATES[index]; }
 
 /* --- Tag classification --- */
 
@@ -163,7 +163,7 @@ bool is_wrapper_tag(const char *name) {
 }
 
 static const char *BLOCK_MACROS[] = {
-    "h1", "h2", "h3", "h4", "h5", "h6",
+    "-", "--", "---", "----", "-----", "------",
     "p", "hr", "ul", "ol", "table",
     "div", "section", "nav",
     "header", "footer", "main", "article", "aside",

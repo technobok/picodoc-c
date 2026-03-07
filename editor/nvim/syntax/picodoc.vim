@@ -44,7 +44,7 @@ syn match picodocEquals /=/ contained containedin=picodocArgAssign
 syn match picodocArgAssign /[A-Za-z][A-Za-z0-9_.-]*=/ contains=picodocArgName,picodocEquals
 syn match picodocArgName /[A-Za-z][A-Za-z0-9_.-]*\ze=/ contained
 
-" --- List item alias --------------------------------------------------------
+" --- List item alternate form -----------------------------------------------
 syn match picodocStructural /#\*\>/
 syn match picodocStructural /#li\>/
 

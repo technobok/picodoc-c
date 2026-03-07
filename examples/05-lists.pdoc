@@ -35,9 +35,9 @@
   #*: A [#link to="https://example.com" : linked] item
 ]
 
-#h2: List Item Alias
+#h2: List Item Alternate Form
 
 [#ul :
-  #li: Using the li alias
+  #li: Using the li form
   #li: Another li item
 ]

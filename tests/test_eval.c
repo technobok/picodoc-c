@@ -1133,7 +1133,7 @@ void test_eval_block_inside_b(void) {
 
     const char *msg = eval_ast_err(doc);
     TEST_ASSERT_NOT_NULL(strstr(msg,
-        "block element #h2 cannot appear inside inline element #b"));
+        "block element #h2 cannot appear inside inline element #**"));
 }
 
 void test_eval_block_inside_span(void) {
@@ -1929,12 +1929,12 @@ void test_eval_builtin_prefix_direct(void) {
 }
 
 void test_eval_builtin_prefix_alias(void) {
-    /* #builtin.** resolves alias ** -> b */
+    /* #builtin.** is already the canonical form */
     PdNode *result = eval_ok("[#builtin.**: bold]\n");
     TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
     PdNode *b = result->as.document.children[0];
     TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, b->type);
-    TEST_ASSERT_EQUAL_STRING("b", b->as.macro_call.name);
+    TEST_ASSERT_EQUAL_STRING("**", b->as.macro_call.name);
     pd_node_free(result);
 }
 

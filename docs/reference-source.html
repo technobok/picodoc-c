@@ -159,7 +159,7 @@ produces a literal \[, while in strings it enters code mode.
 
 #---: Comments
 
-The \#comment macro (alias \#//) removes its body from the output entirely.
+The \#// macro (also \#comment) removes its body from the output entirely.
 Three forms are available:
 
 [#ol :
@@ -402,43 +402,43 @@ This prevents a mismatched quote from silently cascading through the file.
 
 #--: Builtin Macros
 
-PicoDoc has 44 builtin macros in 8 categories, plus 11 aliases.
+PicoDoc has 44 builtin macros in 8 categories, plus 11 alternate forms.
 
 #---: Structural Macros
 
-#----: \#h1
+#----: \#-
 
-Alias: \#-. Top-level heading. Renders as [#~"<h1>"] in the document body.
+Also: \#h1. Top-level heading. Renders as [#~"<h1>"] in the document body.
 Takes body, no parameters.
 
 #code language=picodoc: """
-    #h1: Main Heading
-    #-: Alias form
+    #-: Main Heading
+    #h1: Alternate form
     """
 
-#----: \#h2
+#----: \#--
 
-Alias: \#--. Section heading. Renders as [#~"<h2>"]. Takes body, no
+Also: \#h2. Section heading. Renders as [#~"<h2>"]. Takes body, no
 parameters.
 
-#----: \#h3
+#----: \#---
 
-Alias: \#---. Subsection heading. Renders as [#~"<h3>"]. Takes body, no
+Also: \#h3. Subsection heading. Renders as [#~"<h3>"]. Takes body, no
 parameters.
 
-#----: \#h4
+#----: \#----
 
-Alias: \#----. Lower-level heading. Renders as [#~"<h4>"]. Takes body, no
+Also: \#h4. Lower-level heading. Renders as [#~"<h4>"]. Takes body, no
 parameters.
 
-#----: \#h5
+#----: \#-----
 
-Alias: \#-----. Lower-level heading. Renders as [#~"<h5>"]. Takes body, no
+Also: \#h5. Lower-level heading. Renders as [#~"<h5>"]. Takes body, no
 parameters.
 
-#----: \#h6
+#----: \#------
 
-Alias: \#------. Lower-level heading. Renders as [#~"<h6>"]. Takes body, no
+Also: \#h6. Lower-level heading. Renders as [#~"<h6>"]. Takes body, no
 parameters.
 
 #----: \#p
@@ -458,24 +458,24 @@ Horizontal rule. Renders as [#~"<hr>"]. No parameters, no body.
 
 #---: Inline Macros
 
-#----: \#b
+#----: \#**
 
-Alias: \#**. Bold text. Renders as [#~"<strong>"]. Takes body, no
+Also: \#b. Bold text. Renders as [#~"<strong>"]. Takes body, no
 parameters.
 
 #code language=picodoc: """
     This is #**"bold" text.
-    This is [#b : also bold] text.
+    This is [#** : also bold] text.
     """
 
-#----: \#i
+#----: \#__
 
-Alias: \#__. Italic text. Renders as [#~"<em>"]. Takes body, no
+Also: \#i. Italic text. Renders as [#~"<em>"]. Takes body, no
 parameters.
 
 #code language=picodoc: """
     This is #__"italic" text.
-    This is [#i : also italic] text.
+    This is [#__ : also italic] text.
     """
 
 #----: \#*_
@@ -498,9 +498,9 @@ no parameters.
     This is #_*"also italic bold" text.
     """
 
-#----: \#link
+#----: \#>
 
-Alias: \#>. Hyperlink. Renders as [#~"<a>"]. Parameters:
+Also: \#link. Hyperlink. Renders as [#~"<a>"]. Parameters:
 
 #table:
   Parameter | Required | Description
@@ -526,12 +526,12 @@ For fragment references, two additional rules apply:
 ]
 
 #code language=picodoc: """
-    [#link to="https://example.com" : Click here]
-    [#> to="https://example.com" : Alias form]
-    [#link to=section1 : Jump to section]
-    [#link to=section1]
-    [#link to=page/about : About page]
-    [#link : https://example.com]
+    [#> to="https://example.com" : Click here]
+    [#link to="https://example.com" : Alternate form]
+    [#> to=section1 : Jump to section]
+    [#> to=section1]
+    [#> to=page/about : About page]
+    [#> : https://example.com]
     [#> : section1]
     """
 
@@ -608,7 +608,7 @@ contain only \#* (list item) elements.
 
 #----: \#*
 
-Alias: \#li. List item. Renders as [#~"<li>"]. Takes body, no parameters.
+Also: \#li. List item. Renders as [#~"<li>"]. Takes body, no parameters.
 Must appear inside \#ul or \#ol.
 
 #code language=picodoc: """
@@ -945,7 +945,7 @@ control:
     ]
     """
 
-All headings (\#h1 through \#h6) automatically receive an [#~"id"]
+All headings (\#- through \#------) automatically receive an [#~"id"]
 attribute based on their text content. The slug algorithm lowercases the text,
 replaces non-alphanumeric characters with hyphens, collapses consecutive
 hyphens, and strips leading/trailing hyphens. Duplicate heading texts produce
@@ -1060,7 +1060,7 @@ when \#doc.heading.number is also active.
 These macros are fully resolved during evaluation and do not appear in the
 final AST.
 
-The \#comment macro (alias \#//) removes its body from the output. Takes body,
+The \#// macro (also \#comment) removes its body from the output. Takes body,
 no parameters.
 
 The \#set macro defines a user macro. See the User-Defined Macros section
@@ -1117,22 +1117,22 @@ When [#~"literal=true"] is set, the file contents are included as raw text
 without parsing or macro expansion. This is useful for including source code
 or other non-PicoDoc content.
 
-#---: Alias Table
+#---: Alternate Forms
 
-All 11 aliases mapped to their canonical names:
+All 11 alternate forms mapped to their canonical commands:
 
 #table:
-  Alias | Canonical
-  \#- | \#h1
-  \#-- | \#h2
-  \#--- | \#h3
-  \#---- | \#h4
-  \#----- | \#h5
-  \#------ | \#h6
-  \#// | \#comment
-  \#> | \#link
-  \#** | \#b
-  \#__ | \#i
+  Alternate | Canonical
+  \#h1 | \#-
+  \#h2 | \#--
+  \#h3 | \#---
+  \#h4 | \#----
+  \#h5 | \#-----
+  \#h6 | \#------
+  \#comment | \#//
+  \#link | \#>
+  \#b | \#**
+  \#i | \#__
   \#li | \#*
 
 #--: User-Defined Macros
@@ -1213,7 +1213,7 @@ how standard elements are rendered without losing access to the original
 behaviour.
 
 Expansion-time builtins (\#set, \#ifeq, \#ifne, \#ifset, \#include,
-\#comment, \#table) cannot be overridden. Attempting to define a macro with
+\#//, \#table) cannot be overridden. Attempting to define a macro with
 the same name as an expansion-time builtin is an error.
 
 #code language=picodoc: """
@@ -1224,8 +1224,9 @@ the same name as an expansion-time builtin is an error.
 #----: The \#builtin.* Prefix
 
 Inside a user macro definition (or anywhere else), use \#builtin.name to call
-the original builtin, bypassing the user-defined override. Alias resolution
-applies after the prefix, so [#~"#builtin.**"] resolves to the builtin \#b.
+the original builtin, bypassing the user-defined override. Alternate form
+resolution applies after the prefix, so [#~"#builtin.b"] resolves to the
+builtin \#**.
 
 #code language=picodoc: """
     [#set name=code body=? :
@@ -1247,7 +1248,7 @@ with [#~"builtin."] is an error:
     """
 
 If the name after [#~"builtin."] does not match any builtin macro (after
-alias resolution), an evaluation error is raised.
+alternate form resolution), an evaluation error is raised.
 
 #---: Macro References as Argument Values
 
