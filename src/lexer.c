@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include "lexer.h"
 #include "strings.h"
 #include <stdlib.h>
@@ -29,6 +31,7 @@ typedef struct {
     int stack_cap;
     LexState state;
     int bracket_depth;
+    Position string_start; /* where the current interpreted string opened */
     PdError *err;
 } Lexer;
 
@@ -53,6 +56,7 @@ static void lexer_init(Lexer *L, const char *source, const char *filename, PdErr
     L->stack_cap = 0;
     L->state = STATE_NORMAL;
     L->bracket_depth = 0;
+    L->string_start = pos_make(0, 0, 0);
     L->err = err;
 }
 
@@ -373,6 +377,7 @@ static int lex_string_open(Lexer *L) {
     if (quote_count == 1) {
         /* Interpreted string */
         emit_simple(L, TOK_STRING_START, start, 1);
+        L->string_start = start;
         push_state(L, STATE_INTERP_STRING, 0);
         return 0;
     }
@@ -448,7 +453,20 @@ static int lex_string_escape(Lexer *L) {
         return 0;
     }
 
-    return lex_error(L, "invalid string escape sequence", start);
+    {
+        char buf[128];
+        snprintf(buf, sizeof(buf),
+                 "invalid string escape sequence "
+                 "(string opened at %d:%d)",
+                 L->string_start.line, L->string_start.column);
+        L->err->detail = strdup(buf);
+        L->err->message = L->err->detail;
+        L->err->kind = PD_ERR_LEX;
+        L->err->position = start;
+        L->err->source = L->source;
+        L->err->filename = L->filename;
+        return -1;
+    }
 }
 
 static int lex_normal(Lexer *L) {
@@ -627,10 +645,20 @@ int pd_tokenize(const char *source, const char *filename,
 
     /* Check for unclosed states at EOF */
     if (L.state == STATE_INTERP_STRING) {
+        char buf[128];
+        snprintf(buf, sizeof(buf),
+                 "unterminated interpreted string "
+                 "(opened at %d:%d)",
+                 L.string_start.line, L.string_start.column);
         token_array_free(&L.tokens);
+        err->detail = strdup(buf);
+        err->message = err->detail;
         lexer_cleanup(&L);
-        return pd_lex_error(err, "unterminated interpreted string",
-                            current_pos(&L), source, filename);
+        err->kind = PD_ERR_LEX;
+        err->position = L.string_start;
+        err->source = source;
+        err->filename = filename;
+        return -1;
     }
     if (L.state == STATE_CODE_MODE) {
         token_array_free(&L.tokens);
