@@ -4,7 +4,8 @@ if exists('b:current_syntax')
 endif
 
 " --- Interpreted strings with escapes ---------------------------------------
-syn region picodocString start=/"/ skip=/\\"/ end=/"/ contains=picodocStringEscape
+" Negative lookahead prevents matching at """ (raw string delimiters).
+syn region picodocString start=/"\%(""\)\@!/ skip=/\\"/ end=/"/ contains=picodocStringEscape
 syn match picodocStringEscape /\\[\\"\[\]nt]/ contained
 syn match picodocStringEscape /\\x\x\{2}/ contained
 syn match picodocStringEscape /\\U\x\{8}/ contained
@@ -70,5 +71,8 @@ hi def link picodocProseEscape  SpecialChar
 hi def link picodocArgName      Identifier
 hi def link picodocEquals       Operator
 hi def link picodocBracket      Delimiter
+
+" --- Sync: look back enough lines to find multi-line raw string starts ------
+syn sync minlines=500
 
 let b:current_syntax = 'picodoc'
