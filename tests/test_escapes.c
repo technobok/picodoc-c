@@ -110,37 +110,37 @@ void test_escape_incomplete_unicode(void) {
 /* --- String escapes --- */
 
 void test_string_escape_newline(void) {
-    assert_escape("\"\\n\"", TOK_STRING_ESCAPE, "\n", 1, "\\n");
+    assert_escape("x=\"\\n\"", TOK_STRING_ESCAPE, "\n", 1, "\\n");
 }
 
 void test_string_escape_tab(void) {
-    assert_escape("\"\\t\"", TOK_STRING_ESCAPE, "\t", 1, "\\t");
+    assert_escape("x=\"\\t\"", TOK_STRING_ESCAPE, "\t", 1, "\\t");
 }
 
 void test_string_escape_quote(void) {
-    assert_escape("\"\\\"\"", TOK_STRING_ESCAPE, "\"", 1, "\\\"");
+    assert_escape("x=\"\\\"\"", TOK_STRING_ESCAPE, "\"", 1, "\\\"");
 }
 
 void test_string_escape_backslash(void) {
-    assert_escape("\"\\\\\"", TOK_STRING_ESCAPE, "\\", 1, "\\\\");
+    assert_escape("x=\"\\\\\"", TOK_STRING_ESCAPE, "\\", 1, "\\\\");
 }
 
 void test_string_escape_hex(void) {
-    assert_escape("\"\\x41\"", TOK_STRING_ESCAPE, "A", 1, "\\x41");
+    assert_escape("x=\"\\x41\"", TOK_STRING_ESCAPE, "A", 1, "\\x41");
 }
 
 void test_string_escape_unicode(void) {
-    assert_escape("\"\\U000000E9\"", TOK_STRING_ESCAPE, "\xC3\xA9", 2, "\\U000000E9");
+    assert_escape("x=\"\\U000000E9\"", TOK_STRING_ESCAPE, "\xC3\xA9", 2, "\\U000000E9");
 }
 
 /* --- Invalid string escapes --- */
 
 void test_string_escape_invalid(void) {
-    assert_lex_error("\"\\q\"");
+    assert_lex_error("x=\"\\q\"");
 }
 
 void test_string_escape_eof(void) {
-    assert_lex_error("\"\\");
+    assert_lex_error("x=\"\\");
 }
 
 void run_test_escapes(void) {

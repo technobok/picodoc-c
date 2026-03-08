@@ -292,7 +292,7 @@ static int lex_prose_escape(Lexer *L) {
 
     char ch = peek(L, 0);
 
-    if (ch == '\\' || ch == '#' || ch == '[' || ch == ']') {
+    if (ch == '\\' || ch == '#' || ch == '[' || ch == ']' || ch == '"') {
         advance(L);
         /* value is the resolved char (in source), raw is the full escape */
         const char *raw = L->source + start.offset;
@@ -523,7 +523,62 @@ static int lex_normal(Lexer *L) {
     }
 
     if (ch == '"') {
-        return lex_string_open(L);
+        /* Only parse as string in value/body-introduction positions.
+         * Otherwise treat as literal text in prose. */
+        int n = L->tokens.count;
+        bool as_string = false;
+        if (n > 0) {
+            TokenType last = L->tokens.items[n - 1].type;
+            /* Directly after EQUALS or IDENTIFIER (no whitespace) */
+            if (last == TOK_EQUALS || last == TOK_IDENTIFIER) {
+                as_string = true;
+            }
+            if (!as_string) {
+                /* Scan back past WS/NL for COLON or EQUALS */
+                for (int i = n - 1; i >= 0; i--) {
+                    TokenType t = L->tokens.items[i].type;
+                    if (t == TOK_WS || t == TOK_NEWLINE) continue;
+                    if (t == TOK_COLON || t == TOK_EQUALS) as_string = true;
+                    break;
+                }
+            }
+            if (!as_string) {
+                /* Check if we're in a macro head (after # but before :
+                 * or newline) — string is valid as body.
+                 * Only break on NEWLINE if we've seen content tokens
+                 * (identifiers, etc.) between the newline and the quote,
+                 * so that [#p\n"hello"] still works (no content after NL). */
+                int depth = 0;
+                bool seen_content = false;
+                for (int i = n - 1; i >= 0; i--) {
+                    TokenType t = L->tokens.items[i].type;
+                    if (t == TOK_RBRACKET) { depth++; seen_content = true; }
+                    else if (t == TOK_LBRACKET) {
+                        if (depth > 0) { depth--; seen_content = true; }
+                        else {
+                            /* Enclosing bracket — check for [# */
+                            as_string = (i + 1 < n &&
+                                         L->tokens.items[i + 1].type == TOK_HASH);
+                            break;
+                        }
+                    }
+                    else if (t == TOK_COLON && depth == 0) { break; }
+                    else if (t == TOK_HASH && depth == 0) { as_string = true; break; }
+                    else if (t == TOK_NEWLINE && depth == 0) {
+                        if (seen_content) break;
+                    }
+                    else if (t != TOK_WS) { seen_content = true; }
+                }
+            }
+        }
+        if (as_string) {
+            return lex_string_open(L);
+        }
+        /* Literal double quote in prose */
+        Position start = current_pos(L);
+        advance(L);
+        emit_simple(L, TOK_TEXT, start, 1);
+        return 0;
     }
 
     if (ch == '\n') {

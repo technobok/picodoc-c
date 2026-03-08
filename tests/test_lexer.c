@@ -121,67 +121,72 @@ void test_lex_macro_call(void) {
 /* --- Interpreted strings --- */
 
 void test_lex_empty_string(void) {
-    TokenArray t = tokenize_ok("\"\"");
-    assert_tok(&t, 0, TOK_STRING_START, "\"");
-    assert_tok(&t, 1, TOK_STRING_END, "\"");
+    /* x="" — string after EQUALS */
+    TokenArray t = tokenize_ok("x=\"\"");
+    assert_tok(&t, 2, TOK_STRING_START, "\"");
+    assert_tok(&t, 3, TOK_STRING_END, "\"");
     token_array_free(&t);
 }
 
 void test_lex_interp_string(void) {
-    TokenArray t = tokenize_ok("\"hello\"");
-    assert_tok(&t, 0, TOK_STRING_START, "\"");
-    assert_tok(&t, 1, TOK_STRING_TEXT, "hello");
-    assert_tok(&t, 2, TOK_STRING_END, "\"");
-    token_array_free(&t);
-}
-
-void test_lex_string_with_escape(void) {
-    TokenArray t = tokenize_ok("\"hello\\nworld\"");
-    assert_tok(&t, 0, TOK_STRING_START, "\"");
-    assert_tok(&t, 1, TOK_STRING_TEXT, "hello");
-    assert_tok(&t, 2, TOK_STRING_ESCAPE, "\n");
-    assert_tok(&t, 3, TOK_STRING_TEXT, "world");
+    /* x="hello" — string after EQUALS */
+    TokenArray t = tokenize_ok("x=\"hello\"");
+    assert_tok(&t, 2, TOK_STRING_START, "\"");
+    assert_tok(&t, 3, TOK_STRING_TEXT, "hello");
     assert_tok(&t, 4, TOK_STRING_END, "\"");
     token_array_free(&t);
 }
 
+void test_lex_string_with_escape(void) {
+    /* x="hello\nworld" */
+    TokenArray t = tokenize_ok("x=\"hello\\nworld\"");
+    assert_tok(&t, 2, TOK_STRING_START, "\"");
+    assert_tok(&t, 3, TOK_STRING_TEXT, "hello");
+    assert_tok(&t, 4, TOK_STRING_ESCAPE, "\n");
+    assert_tok(&t, 5, TOK_STRING_TEXT, "world");
+    assert_tok(&t, 6, TOK_STRING_END, "\"");
+    token_array_free(&t);
+}
+
 void test_lex_string_code_mode(void) {
-    /* "value: \[x]" */
-    TokenArray t = tokenize_ok("\"value: \\[x]\"");
-    assert_tok(&t, 0, TOK_STRING_START, "\"");
-    assert_tok(&t, 1, TOK_STRING_TEXT, "value: ");
-    assert_tok(&t, 2, TOK_CODE_OPEN, "\\[");
-    assert_tok(&t, 3, TOK_IDENTIFIER, "x");
-    assert_tok(&t, 4, TOK_CODE_CLOSE, "]");
-    assert_tok(&t, 5, TOK_STRING_END, "\"");
+    /* x="value: \[x]" */
+    TokenArray t = tokenize_ok("x=\"value: \\[x]\"");
+    assert_tok(&t, 2, TOK_STRING_START, "\"");
+    assert_tok(&t, 3, TOK_STRING_TEXT, "value: ");
+    assert_tok(&t, 4, TOK_CODE_OPEN, "\\[");
+    assert_tok(&t, 5, TOK_IDENTIFIER, "x");
+    assert_tok(&t, 6, TOK_CODE_CLOSE, "]");
+    assert_tok(&t, 7, TOK_STRING_END, "\"");
     token_array_free(&t);
 }
 
 void test_lex_string_nested_brackets(void) {
-    /* "val: \[a[b]]" — nested brackets in code mode */
-    TokenArray t = tokenize_ok("\"\\[a[b]]\"");
-    assert_tok(&t, 0, TOK_STRING_START, "\"");
-    assert_tok(&t, 1, TOK_CODE_OPEN, "\\[");
-    assert_tok(&t, 2, TOK_IDENTIFIER, "a");
-    assert_tok(&t, 3, TOK_LBRACKET, "[");
-    assert_tok(&t, 4, TOK_IDENTIFIER, "b");
-    assert_tok(&t, 5, TOK_RBRACKET, "]");
-    assert_tok(&t, 6, TOK_CODE_CLOSE, "]");
-    assert_tok(&t, 7, TOK_STRING_END, "\"");
+    /* x="\[a[b]]" — nested brackets in code mode */
+    TokenArray t = tokenize_ok("x=\"\\[a[b]]\"");
+    assert_tok(&t, 2, TOK_STRING_START, "\"");
+    assert_tok(&t, 3, TOK_CODE_OPEN, "\\[");
+    assert_tok(&t, 4, TOK_IDENTIFIER, "a");
+    assert_tok(&t, 5, TOK_LBRACKET, "[");
+    assert_tok(&t, 6, TOK_IDENTIFIER, "b");
+    assert_tok(&t, 7, TOK_RBRACKET, "]");
+    assert_tok(&t, 8, TOK_CODE_CLOSE, "]");
+    assert_tok(&t, 9, TOK_STRING_END, "\"");
     token_array_free(&t);
 }
 
 /* --- Raw strings --- */
 
 void test_lex_raw_string(void) {
-    TokenArray t = tokenize_ok("\"\"\"hello\"\"\"");
-    assert_tok(&t, 0, TOK_RAW_STRING, "hello");
+    /* x="""hello""" */
+    TokenArray t = tokenize_ok("x=\"\"\"hello\"\"\"");
+    assert_tok(&t, 2, TOK_RAW_STRING, "hello");
     token_array_free(&t);
 }
 
 void test_lex_raw_string_multiline(void) {
-    TokenArray t = tokenize_ok("\"\"\"\n    hello\n    world\n    \"\"\"");
-    assert_tok(&t, 0, TOK_RAW_STRING, "hello\nworld");
+    /* x="""\n    hello\n    world\n    """ */
+    TokenArray t = tokenize_ok("x=\"\"\"\n    hello\n    world\n    \"\"\"");
+    assert_tok(&t, 2, TOK_RAW_STRING, "hello\nworld");
     token_array_free(&t);
 }
 
@@ -218,7 +223,7 @@ void test_lex_unterminated_string(void) {
     TokenArray tokens;
     PdError err;
     pd_error_init(&err);
-    int rc = pd_tokenize("\"hello", "test", &tokens, &err);
+    int rc = pd_tokenize("x=\"hello", "test", &tokens, &err);
     TEST_ASSERT_EQUAL_INT(-1, rc);
     TEST_ASSERT_EQUAL_INT(PD_ERR_LEX, err.kind);
     pd_error_free(&err);
@@ -228,7 +233,7 @@ void test_lex_adjacent_strings(void) {
     TokenArray tokens;
     PdError err;
     pd_error_init(&err);
-    int rc = pd_tokenize("\"a\"\"b\"", "test", &tokens, &err);
+    int rc = pd_tokenize("x=\"a\"\"b\"", "test", &tokens, &err);
     TEST_ASSERT_EQUAL_INT(-1, rc);
     pd_error_free(&err);
 }
