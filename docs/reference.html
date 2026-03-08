@@ -242,10 +242,15 @@ valid list for the current context is a syntax error.</p>
 <tr><td><code>\#</code></td><td>Literal #</td></tr>
 <tr><td><code>\[</code></td><td>Literal [</td></tr>
 <tr><td><code>\]</code></td><td>Literal ]</td></tr>
+<tr><td><code>\"</code></td><td>Literal "</td></tr>
 <tr><td><code>\xHH</code></td><td>Unicode codepoint U+0000 to U+00FF</td></tr>
 <tr><td><code>\UHHHHHHHH</code></td><td>Unicode codepoint (8 hex digits)</td></tr>
 </tbody>
 </table>
+<p>Double quotes are literal in prose &#x2014; they are only parsed as string
+delimiters in value positions (after <code>=</code>, after a colon, or
+directly after a macro name). Use <code>\"</code> when the body of a macro
+must begin with a literal double quote character.</p>
 <p><strong>String escapes</strong> (inside interpreted string literals):</p>
 <table>
 <thead>
@@ -376,6 +381,10 @@ Inline bodies (content on the same line as the colon) have no newlines and
 are unaffected.</p>
 <h2 id="string-literals"><a href="#string-literals">4. String Literals</a></h2>
 <h3 id="interpreted-strings"><a href="#interpreted-strings">4.1. Interpreted Strings</a></h3>
+<p>String literals are only recognised in value positions: after <code>=</code> (argument
+value), directly after a macro name with no whitespace (inline body), or after
+<code>:</code> (colon body). A double quote in any other position is literal prose
+text.</p>
 <p>Delimited by a single double quote on each end. Escape sequences are processed
 but macro calls are NOT automatically scanned for.</p>
 <pre><code class="language-picodoc">"A simple string."
@@ -736,11 +745,11 @@ included in the output when non-empty.</p>
 </table>
 <p>Takes optional body (inline script content). Use either the src parameter or
 body, not both.</p>
-<pre><code class="language-picodoc">    #doc.script src="app.js"
-    #doc.script type=text/javascript src="app.js"
-    [#doc.script : </code></pre>
-<p>        console.log("Hello from PicoDoc");
-        ]</p>
+<pre><code class="language-picodoc">#doc.script src="app.js"
+#doc.script type=text/javascript src="app.js"
+[#doc.script : """
+    console.log("Hello from PicoDoc");
+    """]</code></pre>
 <h4 id="doc-author"><a href="#doc-author">5.7.6. #doc.author</a></h4>
 <p>Convenience macro. Renders as <code>&lt;meta name="author" content="..."&gt;</code>.
 Takes body (the author name), no parameters.</p>
@@ -1033,14 +1042,14 @@ the same name as an expansion-time builtin is an error.</p>
 the original builtin, bypassing the user-defined override. Alternate form
 resolution applies after the prefix, so <code>#builtin.b</code> resolves to the
 builtin #**.</p>
-<pre><code class="language-picodoc">    [#set name=code body=? :
-      [#div class=code-wrapper :
-        [#builtin.code : #body]
-      ]
-    ]
-    [#code language=python : </code></pre>
-<p>        print("hello")
-        ]</p>
+<pre><code class="language-picodoc">[#set name=code body=? :
+  [#div class=code-wrapper :
+    [#builtin.code : #body]
+  ]
+]
+[#code language=python : """
+    print("hello")
+    """]</code></pre>
 <p>The #builtin.* namespace is reserved. Defining a macro whose name starts
 with <code>builtin.</code> is an error:</p>
 <pre><code class="language-picodoc">[#set name=builtin.foo : bar]

@@ -71,8 +71,14 @@ valid list for the current context is a syntax error.
   [#~"\\#"] | Literal \#
   [#~"\\["] | Literal \[
   [#~"\\]"] | Literal \]
+  [#~"\\\""] | Literal \"
   [#~"\\xHH"] | Unicode codepoint U+0000 to U+00FF
   [#~"\\UHHHHHHHH"] | Unicode codepoint (8 hex digits)
+
+Double quotes are literal in prose — they are only parsed as string
+delimiters in value positions (after [#~"="], after a colon, or
+directly after a macro name). Use [#~"\\\""] when the body of a macro
+must begin with a literal double quote character.
 
 #p: [#b : String escapes] (inside interpreted string literals):
 
@@ -257,6 +263,11 @@ are unaffected.
 #--: String Literals
 
 #---: Interpreted Strings
+
+String literals are only recognised in value positions: after [#~"="] (argument
+value), directly after a macro name with no whitespace (inline body), or after
+[#~":"] (colon body). A double quote in any other position is literal prose
+text.
 
 Delimited by a single double quote on each end. Escape sequences are processed
 but macro calls are NOT automatically scanned for.
@@ -759,13 +770,13 @@ Adds a [#~"<script>"] element. Parameters:
 Takes optional body (inline script content). Use either the src parameter or
 body, not both.
 
-#code language=picodoc: """
+#code language=picodoc: """"
     #doc.script src="app.js"
     #doc.script type=text/javascript src="app.js"
     [#doc.script : """
         console.log("Hello from PicoDoc");
         """]
-    """
+    """"
 
 #----: \#doc.author
 
@@ -1160,7 +1171,7 @@ the original builtin, bypassing the user-defined override. Alternate form
 resolution applies after the prefix, so [#~"#builtin.b"] resolves to the
 builtin \#**.
 
-#code language=picodoc: """
+#code language=picodoc: """"
     [#set name=code body=? :
       [#div class=code-wrapper :
         [#builtin.code : #body]
@@ -1169,7 +1180,7 @@ builtin \#**.
     [#code language=python : """
         print("hello")
         """]
-    """
+    """"
 
 The \#builtin.* namespace is reserved. Defining a macro whose name starts
 with [#~"builtin."] is an error:

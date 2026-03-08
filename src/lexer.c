@@ -529,8 +529,8 @@ static int lex_normal(Lexer *L) {
         bool as_string = false;
         if (n > 0) {
             TokenType last = L->tokens.items[n - 1].type;
-            /* Directly after EQUALS or IDENTIFIER (no whitespace) */
-            if (last == TOK_EQUALS || last == TOK_IDENTIFIER) {
+            /* Directly after EQUALS (argument value) */
+            if (last == TOK_EQUALS) {
                 as_string = true;
             }
             if (!as_string) {
