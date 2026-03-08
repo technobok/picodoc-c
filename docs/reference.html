@@ -235,7 +235,7 @@ valid list for the current context is a syntax error.</p>
 <p><strong>Prose escapes</strong> (in body text and barewords):</p>
 <table>
 <thead>
-<tr><th>Sequence</th><th>Produces</th></tr>
+<tr><th style="text-align: left">Sequence</th><th style="text-align: left">Produces</th></tr>
 </thead>
 <tbody>
 <tr><td><code>\\</code></td><td>Literal backslash</td></tr>
@@ -254,7 +254,7 @@ must begin with a literal double quote character.</p>
 <p><strong>String escapes</strong> (inside interpreted string literals):</p>
 <table>
 <thead>
-<tr><th>Sequence</th><th>Produces</th></tr>
+<tr><th style="text-align: left">Sequence</th><th style="text-align: left">Produces</th></tr>
 </thead>
 <tbody>
 <tr><td><code>\\</code></td><td>Literal backslash</td></tr>
@@ -489,7 +489,7 @@ This is #_*"also italic bold" text.</code></pre>
 <p>Also: #link. Hyperlink. Renders as <code>&lt;a&gt;</code>. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>to</td><td>No</td><td>Link target (URL, path, or fragment name)</td></tr>
@@ -522,7 +522,7 @@ document. A broken internal link is a render error.</li>
 <p>Block code. Renders as <code>&lt;pre&gt;&lt;code&gt;</code>. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>language</td><td>No</td><td>Programming language for syntax class</td></tr>
@@ -544,7 +544,7 @@ automatically:</p>
 <p>Inline code. Renders as <code>&lt;code&gt;</code>. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>language</td><td>No</td><td>Programming language for syntax class</td></tr>
@@ -592,7 +592,7 @@ Must appear inside #ul or #ol.</p>
 <p>Table container. Renders as <code>&lt;table&gt;</code>. Takes body. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>cols</td><td>No</td><td>Column widths and alignment spec</td></tr>
@@ -636,7 +636,7 @@ count must match every row's cell count or rendering fails with an error.</p>
 <p>Table data cell. Renders as <code>&lt;td&gt;</code>. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>span</td><td>No</td><td>Column span (colspan attribute)</td></tr>
@@ -657,7 +657,7 @@ elements. All wrapper macros accept optional <code>class</code> and <code>id</co
 parameters and take a body.</p>
 <table>
 <thead>
-<tr><th>Macro</th><th>HTML element</th><th>Display</th></tr>
+<tr><th style="text-align: left">Macro</th><th style="text-align: left">HTML element</th><th style="text-align: left">Display</th></tr>
 </thead>
 <tbody>
 <tr><td>#div</td><td><code>&lt;div&gt;</code></td><td>Block</td></tr>
@@ -704,7 +704,7 @@ language code), no parameters.</p>
 <p>Adds a <code>&lt;meta&gt;</code> tag to the document head. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>name</td><td>No</td><td>Meta name attribute</td></tr>
@@ -719,7 +719,7 @@ language code), no parameters.</p>
 <p>Adds a <code>&lt;link&gt;</code> tag to the document head. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>rel</td><td>Yes</td><td>Relationship (e.g. stylesheet)</td></tr>
@@ -736,7 +736,7 @@ included in the output when non-empty.</p>
 <p>Adds a <code>&lt;script&gt;</code> element. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>src</td><td>No</td><td>URL of external script</td></tr>
@@ -770,7 +770,7 @@ Takes body (the date string), no parameters.</p>
 <p>Sets attributes on the <code>&lt;body&gt;</code> element. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>class</td><td>No</td><td>CSS class for the body element</td></tr>
@@ -786,7 +786,7 @@ macro) in a specified HTML container element. This is a document-level
 directive that affects the rendering of body items. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>type</td><td>Yes</td><td>Wrapper tag (must be one of the 9 wrapper tags)</td></tr>
@@ -819,7 +819,7 @@ two paragraphs, then footer.</p>
 <code>&lt;head&gt;</code>). Place it wherever the TOC should appear. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>level</td><td>No</td><td>Maximum heading depth to include (default 3)</td></tr>
@@ -869,7 +869,7 @@ title). Deeper counters reset when a higher-level heading increments.
 Headings beyond the configured level render without numbers. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>level</td><td>No</td><td>Maximum heading depth to number (default 3)</td></tr>
@@ -895,7 +895,7 @@ deep-linking. The heading text is highlighted on hover (styled by CSS). Only
 headings up to the configured level receive anchors. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>level</td><td>No</td><td>Maximum heading depth to add anchors (default 3)</td></tr>
@@ -924,7 +924,7 @@ below.</p>
 otherwise. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>lhs</td><td>Yes</td><td>Left-hand side value</td></tr>
@@ -940,7 +940,7 @@ string otherwise. Same parameters as #ifeq. Takes body.</p>
 empty string otherwise. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>name</td><td>Yes</td><td>Macro name to test</td></tr>
@@ -953,7 +953,7 @@ the macro call. The included file is parsed and expanded as if its contents
 appeared at the call site. Parameters:</p>
 <table>
 <thead>
-<tr><th>Parameter</th><th>Required</th><th>Description</th></tr>
+<tr><th style="text-align: left">Parameter</th><th style="text-align: left">Required</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td>literal</td><td>No</td><td>If "true", include as raw text without parsing</td></tr>
@@ -971,7 +971,7 @@ or other non-PicoDoc content.</p>
 <p>All 11 alternate forms mapped to their canonical commands:</p>
 <table>
 <thead>
-<tr><th>Alternate</th><th>Canonical</th></tr>
+<tr><th style="text-align: left">Alternate</th><th style="text-align: left">Canonical</th></tr>
 </thead>
 <tbody>
 <tr><td>#h1</td><td>#-</td></tr>
@@ -1161,7 +1161,7 @@ timeout = 10.0</code></pre>
 <h3 id="options"><a href="#options">12.1. Options</a></h3>
 <table>
 <thead>
-<tr><th>Flag</th><th>Description</th></tr>
+<tr><th style="text-align: left">Flag</th><th style="text-align: left">Description</th></tr>
 </thead>
 <tbody>
 <tr><td><code>-o FILE</code></td><td>Write output to FILE instead of stdout</td></tr>
@@ -1179,7 +1179,7 @@ timeout = 10.0</code></pre>
 <h3 id="exit-codes"><a href="#exit-codes">12.2. Exit Codes</a></h3>
 <table>
 <thead>
-<tr><th>Code</th><th>Meaning</th></tr>
+<tr><th style="text-align: left">Code</th><th style="text-align: left">Meaning</th></tr>
 </thead>
 <tbody>
 <tr><td>0</td><td>Success</td></tr>

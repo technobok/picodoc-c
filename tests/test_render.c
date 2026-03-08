@@ -553,8 +553,8 @@ static void test_table_basic(void) {
     char *html = render_ok("#table:\n  A | B\n  C | D\n");
     TEST_ASSERT_TRUE(contains(html, "<table>"));
     TEST_ASSERT_TRUE(contains(html, "<thead>"));
-    TEST_ASSERT_TRUE(contains(html, "<th>A</th>"));
-    TEST_ASSERT_TRUE(contains(html, "<th>B</th>"));
+    TEST_ASSERT_TRUE(contains(html, "<th style=\"text-align: left\">A</th>"));
+    TEST_ASSERT_TRUE(contains(html, "<th style=\"text-align: left\">B</th>"));
     TEST_ASSERT_TRUE(contains(html, "<tbody>"));
     TEST_ASSERT_TRUE(contains(html, "<td>C</td>"));
     TEST_ASSERT_TRUE(contains(html, "<td>D</td>"));
@@ -570,7 +570,7 @@ static void test_table_thead_tbody(void) {
         "  [#tr : [#td : A] [#td : B]]\n"
         "]\n");
     TEST_ASSERT_TRUE(contains(html, "<thead>"));
-    TEST_ASSERT_TRUE(contains(html, "<th>H1</th>"));
+    TEST_ASSERT_TRUE(contains(html, "<th style=\"text-align: left\">H1</th>"));
     TEST_ASSERT_TRUE(contains(html, "</thead>"));
     TEST_ASSERT_TRUE(contains(html, "<tbody>"));
     TEST_ASSERT_TRUE(contains(html, "<td>A</td>"));
@@ -627,7 +627,10 @@ static void test_table_cols_right_align(void) {
         "  A | B | C\n"
         "  1 | 2 | 3\n"
         "]\n");
-    TEST_ASSERT_TRUE(contains(html, "<col style=\"width: 50%; text-align: right\">"));
+    /* Alignment goes on cells, not <col> */
+    TEST_ASSERT_TRUE(contains(html, "<col style=\"width: 50%\">"));
+    TEST_ASSERT_TRUE(contains(html, "<th style=\"text-align: right\">B</th>"));
+    TEST_ASSERT_TRUE(contains(html, "<td style=\"text-align: right\">2</td>"));
     free(html);
 }
 
@@ -637,9 +640,10 @@ static void test_table_cols_left_align_explicit(void) {
         "  A | B\n"
         "  1 | 2\n"
         "]\n");
-    /* < is a no-op, same as default — no text-align */
+    /* < is explicit left; th still gets text-align: left */
     TEST_ASSERT_TRUE(contains(html, "<col style=\"width: 33%\">"));
-    TEST_ASSERT_FALSE(contains(html, "text-align"));
+    TEST_ASSERT_TRUE(contains(html, "<th style=\"text-align: left\">A</th>"));
+    TEST_ASSERT_FALSE(contains(html, "text-align: right"));
     free(html);
 }
 
@@ -660,7 +664,9 @@ static void test_table_cols_explicit_form(void) {
         "]\n");
     TEST_ASSERT_TRUE(contains(html, "<colgroup>"));
     TEST_ASSERT_TRUE(contains(html, "<col style=\"width: 50%\">"));
-    TEST_ASSERT_TRUE(contains(html, "<col style=\"width: 50%; text-align: right\">"));
+    TEST_ASSERT_TRUE(contains(html, "<th style=\"text-align: left\">Name</th>"));
+    TEST_ASSERT_TRUE(contains(html, "<th style=\"text-align: right\">Age</th>"));
+    TEST_ASSERT_TRUE(contains(html, "<td style=\"text-align: right\">30</td>"));
     free(html);
 }
 
@@ -949,7 +955,7 @@ static void test_th_colspan(void) {
         "  [#tr : [#th span=3 : Wide Header]]\n"
         "]\n");
     TEST_ASSERT_TRUE(contains(html,
-        "<th colspan=\"3\">Wide Header</th>"));
+        "<th colspan=\"3\" style=\"text-align: left\">Wide Header</th>"));
     free(html);
 }
 

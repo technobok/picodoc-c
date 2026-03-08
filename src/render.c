@@ -42,6 +42,11 @@ typedef struct {
 } TocEntry;
 
 typedef struct {
+    int width;
+    char align;  /* '\0' = default, '>' = right, '<' = left (explicit) */
+} ColSpec;
+
+typedef struct {
     HeadingIdEntry *heading_ids;      /* stb_ds dynamic array */
     HeadingTextEntry *heading_texts;  /* stb_ds string hash map */
     TocEntry *toc_entries;            /* stb_ds dynamic array */
@@ -53,6 +58,8 @@ typedef struct {
     const char *source;
     const char *filename;
     PdError *err;
+    ColSpec *col_aligns;              /* current table's col specs (NULL if none) */
+    int col_idx;                      /* current cell index within a row */
 } RenderState;
 
 /* --- Forward declarations --- */
@@ -827,11 +834,6 @@ static int render_li(const PdNode *node, RenderState *state) {
 
 /* --- Table column spec --- */
 
-typedef struct {
-    int width;
-    char align;  /* '\0' = default, '>' = right, '<' = left (explicit) */
-} ColSpec;
-
 /*
  * Parse a cols string like "1 >2 1" into an array of ColSpec.
  * Returns stb_ds array (caller must arrfree). NULL on empty/NULL input.
@@ -905,7 +907,7 @@ static int render_table(const PdNode *node, RenderState *state) {
     free(cols_str);
     ptrdiff_t col_count = arrlen(col_specs);
 
-    /* Emit <colgroup> if cols specified */
+    /* Emit <colgroup> if cols specified (width only; alignment goes on cells) */
     if (col_count > 0) {
         int total = 0;
         for (ptrdiff_t i = 0; i < col_count; i++)
@@ -914,15 +916,13 @@ static int render_table(const PdNode *node, RenderState *state) {
         bcatcstr(state->out, "<colgroup>\n");
         for (ptrdiff_t i = 0; i < col_count; i++) {
             int pct = col_specs[i].width * 100 / total;
-            if (col_specs[i].align == '>') {
-                bformata(state->out,
-                    "<col style=\"width: %d%%; text-align: right\">\n", pct);
-            } else {
-                bformata(state->out, "<col style=\"width: %d%%\">\n", pct);
-            }
+            bformata(state->out, "<col style=\"width: %d%%\">\n", pct);
         }
         bcatcstr(state->out, "</colgroup>\n");
     }
+
+    /* Store col specs so td/th renderers can apply alignment */
+    state->col_aligns = col_specs;
 
     const PdNode *body = node->as.macro_call.body;
     if (body && body->type == NODE_BODY) {
@@ -987,6 +987,7 @@ static int render_table(const PdNode *node, RenderState *state) {
         arrfree(rows);
     }
 
+    state->col_aligns = NULL;
     arrfree(col_specs);
     bcatcstr(state->out, "</table>");
     return 0;
@@ -994,6 +995,7 @@ static int render_table(const PdNode *node, RenderState *state) {
 
 static int render_tr(const PdNode *node, RenderState *state) {
     bcatcstr(state->out, "<tr>");
+    state->col_idx = 0;
 
     const PdNode *body = node->as.macro_call.body;
     if (body && body->type == NODE_BODY) {
@@ -1009,19 +1011,31 @@ static int render_tr(const PdNode *node, RenderState *state) {
     return 0;
 }
 
+/* Get the alignment for the current column, or '\0' if none. */
+static char current_col_align(RenderState *state) {
+    if (state->col_aligns && state->col_idx < (int)arrlen(state->col_aligns))
+        return state->col_aligns[state->col_idx].align;
+    return '\0';
+}
+
 static int render_td(const PdNode *node, RenderState *state) {
     char *span = get_arg_text(node, "span");
+    char align = current_col_align(state);
+    state->col_idx++;
 
+    bcatcstr(state->out, "<td");
     if (span) {
-        bcatcstr(state->out, "<td colspan=\"");
+        bcatcstr(state->out, " colspan=\"");
         bstring escaped = escape_attr(span, (int)strlen(span));
         bconcat(state->out, escaped);
         bdestroy(escaped);
-        bcatcstr(state->out, "\">");
+        bcatcstr(state->out, "\"");
         free(span);
-    } else {
-        bcatcstr(state->out, "<td>");
     }
+    if (align == '>') {
+        bcatcstr(state->out, " style=\"text-align: right\"");
+    }
+    bcatcstr(state->out, ">");
 
     int rc = render_body(node->as.macro_call.body, state);
     if (rc < 0) return -1;
@@ -1032,17 +1046,23 @@ static int render_td(const PdNode *node, RenderState *state) {
 
 static int render_th(const PdNode *node, RenderState *state) {
     char *span = get_arg_text(node, "span");
+    char align = current_col_align(state);
+    state->col_idx++;
 
+    /* th defaults to center in browsers; use left to match td,
+     * or right if the cols spec says so. */
+    const char *text_align = (align == '>') ? "right" : "left";
+
+    bcatcstr(state->out, "<th");
     if (span) {
-        bcatcstr(state->out, "<th colspan=\"");
+        bcatcstr(state->out, " colspan=\"");
         bstring escaped = escape_attr(span, (int)strlen(span));
         bconcat(state->out, escaped);
         bdestroy(escaped);
-        bcatcstr(state->out, "\">");
+        bcatcstr(state->out, "\"");
         free(span);
-    } else {
-        bcatcstr(state->out, "<th>");
     }
+    bformata(state->out, " style=\"text-align: %s\">", text_align);
 
     int rc = render_body(node->as.macro_call.body, state);
     if (rc < 0) return -1;
