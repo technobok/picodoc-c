@@ -949,6 +949,33 @@ static void test_link_no_body_external(void) {
     free(html);
 }
 
+static void test_macro_block_trailing_ws_string(void) {
+    /* Whitespace after a macro with string body must be preserved. */
+    char *html = render_ok(
+        "[#link to=\"https://example.com\"] more text\n");
+    TEST_ASSERT_TRUE(contains(html,
+        "<a href=\"https://example.com\">https://example.com</a> more text"));
+    free(html);
+}
+
+static void test_macro_block_trailing_ws_bracketed(void) {
+    /* Whitespace after a macro with bracketed body must be preserved. */
+    char *html = render_ok(
+        "[#link to=\"https://example.com\" : Click] more text\n");
+    TEST_ASSERT_TRUE(contains(html,
+        "<a href=\"https://example.com\">Click</a> more text"));
+    free(html);
+}
+
+static void test_macro_block_trailing_ws_unbracketed(void) {
+    /* Whitespace after an unbracketed macro with string body must be preserved. */
+    char *html = render_ok(
+        "#link\"https://example.com\" more text\n");
+    TEST_ASSERT_TRUE(contains(html,
+        "<a href=\"https://example.com\">https://example.com</a> more text"));
+    free(html);
+}
+
 static void test_th_colspan(void) {
     char *html = render_ok(
         "[#table :\n"
@@ -1123,6 +1150,9 @@ void run_test_render(void) {
 
     /* Additional edge cases */
     RUN_TEST(test_link_no_body_external);
+    RUN_TEST(test_macro_block_trailing_ws_string);
+    RUN_TEST(test_macro_block_trailing_ws_bracketed);
+    RUN_TEST(test_macro_block_trailing_ws_unbracketed);
     RUN_TEST(test_th_colspan);
     RUN_TEST(test_wrapper_nav_header_footer);
     RUN_TEST(test_heading_alias);

@@ -730,7 +730,9 @@ static PdNode *parse_macro_block(Parser *P) {
 
     if (!call) return NULL;
 
-    skip_ws(P);
+    const Token *ws_tok = NULL;
+    if (at_type(P, TOK_WS))
+        ws_tok = advance(P);
 
     if (at_type(P, TOK_NEWLINE) || at_eof(P)) {
         if (at_type(P, TOK_NEWLINE))
@@ -743,6 +745,12 @@ static PdNode *parse_macro_block(Parser *P) {
     node_array_init(&children);
     node_array_push(&children, call);
     Position start = call->span.start;
+
+    /* Preserve the whitespace between the macro and trailing text. */
+    if (ws_tok) {
+        PdNode *sp = pd_node_text(" ", 1, ws_tok->span);
+        node_array_push(&children, sp);
+    }
 
     /* Parse remaining inline content on this line. */
     if (parse_inline_content(P, STOP_NEWLINE_EOF, &children) < 0) {
