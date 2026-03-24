@@ -194,15 +194,16 @@ int dedent_body_children(PdNode **children, int count) {
         int p = 0;
         while (p < vlen) {
             if (at_line_start) {
-                /* Check if this line is blank */
-                if (line_is_blank(val, p, vlen)) {
+                /* Check if this line is blank AND newline-terminated.
+                 * Unterminated whitespace means the line continues in
+                 * the next non-TEXT node (e.g. code_section) — not blank. */
+                bool has_nl = (memchr(val + p, '\n', (size_t)(vlen - p)) != NULL);
+                if (line_is_blank(val, p, vlen) && has_nl) {
                     /* Skip to next line — blank lines don't affect prefix */
                     while (p < vlen && val[p] != '\n')
                         p++;
-                    if (p < vlen) {
-                        p++; /* skip \n */
-                        at_line_start = true;
-                    }
+                    p++; /* skip \n */
+                    at_line_start = true;
                     continue;
                 }
 
@@ -292,14 +293,13 @@ int dedent_body_children(PdNode **children, int count) {
 
         for (int p = 0; p < vlen; ) {
             if (ls) {
-                if (line_is_blank(val, p, vlen)) {
+                bool has_nl = (memchr(val + p, '\n', (size_t)(vlen - p)) != NULL);
+                if (line_is_blank(val, p, vlen) && has_nl) {
                     /* Copy blank line as-is (no stripping) */
                     while (p < vlen && val[p] != '\n')
                         out[op++] = val[p++];
-                    if (p < vlen) {
-                        out[op++] = val[p++]; /* copy \n */
-                        ls = true;
-                    }
+                    out[op++] = val[p++]; /* copy \n */
+                    ls = true;
                     continue;
                 }
                 /* Non-blank line: skip prefix_len chars */

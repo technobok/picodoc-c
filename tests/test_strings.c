@@ -158,6 +158,27 @@ void test_dedent_whitespace_only_lines(void) {
     ASSERT_DEDENT_TEXT("    hello\n  \n    world", "hello\n  \nworld");
 }
 
+void test_dedent_non_text_node_at_line_start(void) {
+    /* When a line starts with ws followed by a non-TEXT node (e.g.
+     * code_section from \[), the ws-only text must NOT be treated as a
+     * blank line — it should be dedented like any other line. */
+    PdNode *nodes[5];
+    nodes[0] = pd_node_text("    line1\n    ", 14, dummy_span());
+    nodes[1] = pd_node_escape("[", 1, dummy_span());
+    nodes[2] = pd_node_text("code", 4, dummy_span());
+    nodes[3] = pd_node_escape("]", 1, dummy_span());
+    nodes[4] = pd_node_text("\n    line3", 10, dummy_span());
+
+    int rc = dedent_body_children(nodes, 5);
+    TEST_ASSERT_EQUAL_INT(0, rc);
+    TEST_ASSERT_EQUAL_STRING("line1\n", nodes[0]->as.text.value);
+    TEST_ASSERT_EQUAL_STRING("code", nodes[2]->as.text.value);
+    TEST_ASSERT_EQUAL_STRING("\nline3", nodes[4]->as.text.value);
+
+    for (int i = 0; i < 5; i++)
+        pd_node_free(nodes[i]);
+}
+
 void run_test_strings(void) {
     RUN_TEST(test_strip_empty);
     RUN_TEST(test_strip_no_newlines);
@@ -184,4 +205,5 @@ void run_test_strings(void) {
     RUN_TEST(test_dedent_mixed_content);
     RUN_TEST(test_dedent_empty);
     RUN_TEST(test_dedent_whitespace_only_lines);
+    RUN_TEST(test_dedent_non_text_node_at_line_start);
 }
