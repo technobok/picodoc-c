@@ -1929,10 +1929,13 @@ void test_eval_builtin_prefix_direct(void) {
 }
 
 void test_eval_builtin_prefix_alias(void) {
-    /* #builtin.** is already the canonical form */
+    /* #builtin.** is already the canonical form — wrapped in implicit #p */
     PdNode *result = eval_ok("[#builtin.**: bold]\n");
     TEST_ASSERT_EQUAL_INT(1, result->as.document.count);
-    PdNode *b = result->as.document.children[0];
+    PdNode *p = result->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, p->type);
+    TEST_ASSERT_EQUAL_STRING("p", p->as.macro_call.name);
+    PdNode *b = p->as.macro_call.body->as.body.children[0];
     TEST_ASSERT_EQUAL_INT(NODE_MACRO_CALL, b->type);
     TEST_ASSERT_EQUAL_STRING("**", b->as.macro_call.name);
     pd_node_free(result);

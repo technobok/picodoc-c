@@ -47,6 +47,7 @@ static int expand_macro(PdNode *node, EvalContext *ctx, NodeArray *out);
 static int recurse_body(PdNode *body, EvalContext *ctx, PdNode **out);
 static int expand_body_children(PdNode **children, int count,
                                 EvalContext *ctx, NodeArray *out);
+static int expand_top_level(PdNode *doc, EvalContext *ctx, NodeArray *out);
 
 /* --- Helper: get source directory from filename --- */
 
@@ -629,29 +630,14 @@ static int expand_include(PdNode *node, EvalContext *ctx, NodeArray *out) {
     }
 
     /* Expand top-level nodes */
-    rc = 0;
-    for (int i = 0; i < inc_doc->as.document.count && rc == 0; i++) {
-        PdNode *child = inc_doc->as.document.children[i];
-        if (child->type == NODE_PARAGRAPH) {
-            /* Wrap paragraph in #p */
-            NodeArray para_expanded;
-            node_array_init(&para_expanded);
-            rc = expand_body_children(child->as.paragraph.children,
-                                      child->as.paragraph.count,
-                                      ctx, &para_expanded);
-            if (rc == 0) {
-                PdNode *p_body = pd_node_body(para_expanded.items,
-                                              para_expanded.count,
-                                              child->span);
-                PdNode *p_call = pd_node_macro_call("p", 1, NULL, 0,
-                                                    p_body, false, child->span);
-                node_array_push(out, p_call);
-            } else {
-                node_array_free_deep(&para_expanded);
-            }
-        } else if (child->type == NODE_MACRO_CALL) {
-            rc = expand_macro(child, ctx, out);
-        }
+    {
+        /* Build a temporary Document node to reuse expand_top_level */
+        PdNode tmp_doc;
+        tmp_doc.type = NODE_DOCUMENT;
+        tmp_doc.as.document.children = inc_doc->as.document.children;
+        tmp_doc.as.document.count = inc_doc->as.document.count;
+        tmp_doc.span = inc_doc->span;
+        rc = expand_top_level(&tmp_doc, ctx, out);
     }
 
     /* Restore context */
@@ -1742,6 +1728,31 @@ static int validate_nesting(PdNode **children, int count, EvalContext *ctx) {
 
 /* --- Top-level expansion --- */
 
+static bool is_block_or_structural(const char *name) {
+    const char *resolved = resolve_alias(name);
+    if (strncmp(resolved, "builtin.", 8) == 0)
+        resolved = resolve_alias(resolved + 8);
+    if (is_block_macro(resolved))
+        return true;
+    if (strcmp(resolved, "set") == 0 || strcmp(resolved, "//") == 0 ||
+        strcmp(resolved, "include") == 0 || strcmp(resolved, "ifeq") == 0 ||
+        strcmp(resolved, "ifne") == 0 || strcmp(resolved, "ifset") == 0 ||
+        strcmp(resolved, "table") == 0 || strcmp(resolved, "literal") == 0)
+        return true;
+    if (strncmp(resolved, "doc.", 4) == 0 || strncmp(resolved, "env.", 4) == 0)
+        return true;
+    return false;
+}
+
+static bool expanded_has_block(NodeArray *nodes) {
+    for (int i = 0; i < nodes->count; i++) {
+        if (nodes->items[i]->type == NODE_MACRO_CALL &&
+            is_block_macro(resolve_alias(nodes->items[i]->as.macro_call.name)))
+            return true;
+    }
+    return false;
+}
+
 static int expand_top_level(PdNode *doc, EvalContext *ctx, NodeArray *out) {
     for (int i = 0; i < doc->as.document.count; i++) {
         PdNode *child = doc->as.document.children[i];
@@ -1763,8 +1774,33 @@ static int expand_top_level(PdNode *doc, EvalContext *ctx, NodeArray *out) {
                                                 p_body, false, child->span);
             node_array_push(out, p_call);
         } else if (child->type == NODE_MACRO_CALL) {
-            int rc = expand_macro(child, ctx, out);
-            if (rc < 0) return rc;
+            if (is_block_or_structural(child->as.macro_call.name)) {
+                int rc = expand_macro(child, ctx, out);
+                if (rc < 0) return rc;
+            } else {
+                /* Inline macro on its own line — wrap in implicit #p */
+                NodeArray expanded;
+                node_array_init(&expanded);
+                int rc = expand_macro(child, ctx, &expanded);
+                if (rc < 0) {
+                    node_array_free_deep(&expanded);
+                    return rc;
+                }
+                if (expanded_has_block(&expanded)) {
+                    /* Expanded to block content — don't wrap */
+                    for (int j = 0; j < expanded.count; j++)
+                        node_array_push(out, expanded.items[j]);
+                    node_array_free_shallow(&expanded);
+                } else {
+                    PdNode *p_body = pd_node_body(expanded.items,
+                                                  expanded.count,
+                                                  child->span);
+                    PdNode *p_call = pd_node_macro_call("p", 1, NULL, 0,
+                                                        p_body, false,
+                                                        child->span);
+                    node_array_push(out, p_call);
+                }
+            }
         }
     }
     return 0;
