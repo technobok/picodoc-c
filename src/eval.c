@@ -1705,11 +1705,32 @@ static int validate_node(PdNode *node, const char *parent_name,
     /* Recurse into body */
     PdNode *body = node->as.macro_call.body;
     if (body && body->type == NODE_BODY) {
+        /* For list macros (ol/ul): check that all body children are macro
+         * calls. Non-macro content (text from bare #*: continuation lines)
+         * would be silently dropped by the renderer. */
+        bool is_list = (strcmp(name, "ol") == 0 || strcmp(name, "ul") == 0);
         for (int i = 0; i < body->as.body.count; i++) {
             PdNode *child = body->as.body.children[i];
             if (child->type == NODE_MACRO_CALL) {
                 int rc = validate_node(child, name, ctx);
                 if (rc < 0) return rc;
+            } else if (is_list && child->type == NODE_TEXT) {
+                /* Skip whitespace-only text nodes */
+                const char *txt = child->as.text.value;
+                int len = child->as.text.value_len;
+                bool all_ws = true;
+                for (int j = 0; j < len; j++) {
+                    if (txt[j] != ' ' && txt[j] != '\t' && txt[j] != '\n') {
+                        all_ws = false;
+                        break;
+                    }
+                }
+                if (!all_ws) {
+                    return eval_errf(ctx, child->span,
+                        "text content inside #%s will be ignored — "
+                        "use [#*: ...] brackets for multiline list items",
+                        node->as.macro_call.name);
+                }
             }
         }
     }
