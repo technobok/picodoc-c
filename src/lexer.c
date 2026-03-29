@@ -552,6 +552,9 @@ static int lex_normal(Lexer *L) {
                 bool seen_content = false;
                 for (int i = n - 1; i >= 0; i--) {
                     TokenType t = L->tokens.items[i].type;
+                    /* stop at CODE_OPEN — don't scan past code mode boundary
+                     * into the enclosing string's token context */
+                    if (t == TOK_CODE_OPEN) break;
                     if (t == TOK_RBRACKET) { depth++; seen_content = true; }
                     else if (t == TOK_LBRACKET) {
                         if (depth > 0) { depth--; seen_content = true; }
