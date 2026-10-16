@@ -448,6 +448,15 @@ static void test_block_code_with_language(void) {
     free(html);
 }
 
+static void test_block_code_checker_args_ignored(void) {
+    char *plain = render_ok("#code language=zerolang : x: 1\n");
+    char *marked = render_ok("#code language=zerolang check=none expect=E0400"
+                             " name=db_open after=setup1 : x: 1\n");
+    TEST_ASSERT_EQUAL_STRING(plain, marked);
+    free(plain);
+    free(marked);
+}
+
 static void test_block_code_html_escaping(void) {
     char *html = render_ok("[#code : <div>&]\n");
     TEST_ASSERT_TRUE(contains(html, "&lt;div&gt;&amp;"));
@@ -1073,6 +1082,7 @@ void run_test_render(void) {
     /* 11. Block code */
     RUN_TEST(test_block_code_basic);
     RUN_TEST(test_block_code_with_language);
+    RUN_TEST(test_block_code_checker_args_ignored);
     RUN_TEST(test_block_code_html_escaping);
     RUN_TEST(test_block_code_bracketed_no_leading_newline);
 

@@ -1280,6 +1280,17 @@ void test_eval_unknown_arg_raises(void) {
     TEST_ASSERT_NOT_NULL(strstr(msg, "unknown argument 'bogus' for #p"));
 }
 
+void test_eval_inline_code_refuses_checker_args(void) {
+    PdNode *args[] = {mk_arg("check", "none")};
+    PdNode *body[] = {mk_text("x")};
+    PdNode *tilde = mk_call("~", args, 1, mk_body_v(body, 1), false);
+    PdNode *doc_kids[] = {tilde};
+    PdNode *doc = mk_doc(doc_kids, 1);
+
+    const char *msg = eval_ast_err(doc);
+    TEST_ASSERT_NOT_NULL(strstr(msg, "unknown argument 'check' for #~"));
+}
+
 void test_eval_known_arg_accepted(void) {
     PdNode *args[] = {mk_arg("to", "https://x.com")};
     PdNode *link_body[] = {mk_text("click")};
@@ -2081,6 +2092,7 @@ void run_test_eval(void) {
 
     /* Validation — builtin args */
     RUN_TEST(test_eval_unknown_arg_raises);
+    RUN_TEST(test_eval_inline_code_refuses_checker_args);
     RUN_TEST(test_eval_known_arg_accepted);
     RUN_TEST(test_eval_set_allows_extra_args);
 

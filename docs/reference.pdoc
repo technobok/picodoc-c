@@ -487,9 +487,19 @@ Block code. Renders as [#~ : <pre><code>]. Parameters:
 #table:
   Parameter | Required | Description
   language | No | Programming language for syntax class
+  check | No | Ignored by the renderer; for an external example checker
+  expect | No | Ignored by the renderer; for an external example checker
+  name | No | Ignored by the renderer; for an external example checker
+  after | No | Ignored by the renderer; for an external example checker
 
 Takes body. Always renders as a block [#~ : <pre><code>] element regardless
 of body type. For inline code, use \#~ instead.
+
+#~"check", #~"expect", #~"name" and #~"after" change nothing in the HTML. A
+tool that compiles a project's examples from the #~".pdoc" source reads them
+(for instance #~"check=none" to skip a sketch, or #~"name=setup" and
+#~"after=setup" to build one example on another), so the reader never sees the
+markings.
 
 #code language=picodoc: """"
     [#code language=python : """

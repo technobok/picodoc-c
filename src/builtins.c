@@ -32,6 +32,13 @@ const char *resolve_alias(const char *name) {
 /* Shared param arrays for common patterns. */
 static const ParamDecl params_link[]     = {{"to", false}};
 static const ParamDecl params_code[]     = {{"language", false}};
+/* #code also takes the arguments an external example checker reads (check,
+ * expect, name, after); the renderer ignores them, so a reader never sees
+ * them. Inline #~ takes language alone. */
+static const ParamDecl params_code_block[] = {
+    {"language", false}, {"check", false}, {"expect", false},
+    {"name", false}, {"after", false}
+};
 static const ParamDecl params_td[]       = {{"span", false}};
 static const ParamDecl params_wrapper[]  = {{"class", false}, {"id", false}};
 static const ParamDecl params_doc_meta[] = {
@@ -76,7 +83,7 @@ static const BuiltinDef BUILTINS[] = {
     B(">", params_link, true, false),
 
     /* Code / literal */
-    B("code", params_code, true, false),
+    B("code", params_code_block, true, false),
     B("~",    params_code, true, false),
     B0("literal", true, false),
 

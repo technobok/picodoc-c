@@ -65,13 +65,13 @@
 
 </nav>
 <header>
-  <h1 id="picodoc-language-reference"><a href="#picodoc-language-reference">PicoDoc Language Reference</a></h1>
+<h1 id="picodoc-language-reference"><a href="#picodoc-language-reference">PicoDoc Language Reference</a></h1>
 </header>
 <nav class="toc-sidebar" id="toc">
-  <div id="tocfile">
+<div id="tocfile">
 Table of Contents</div>
 
-  <ul>
+<ul>
 <li><a href="#picodoc-language-reference">PicoDoc Language Reference</a>
 <ul>
 <li><a href="#overview">Overview</a>
@@ -329,13 +329,13 @@ the equals sign. Whitespace after the equals sign is permitted.</p>
 <p>Argument values can be:</p>
 <ul>
 <li><strong>Bareword</strong> (a simple word with no syntactic characters):
-    <code>language=python</code></li>
+<code>language=python</code></li>
 <li><strong>String literal</strong> (interpreted or raw):
-    <code>to="https://example.com"</code></li>
+<code>to="https://example.com"</code></li>
 <li><strong>Macro reference</strong> (a zero-argument macro):
-    <code>to=#site-url</code></li>
+<code>to=#site-url</code></li>
 <li><strong>Bracketed call</strong> (a macro call in brackets):
-    <code>style=[#get-style]</code></li>
+<code>style=[#get-style]</code></li>
 </ul>
 <h3 id="the-body-argument"><a href="#the-body-argument">3.4. The Body Argument</a></h3>
 <p>Body content is introduced by a colon or by a string literal:</p>
@@ -526,10 +526,19 @@ document. A broken internal link is a render error.</li>
 </thead>
 <tbody>
 <tr><td>language</td><td>No</td><td>Programming language for syntax class</td></tr>
+<tr><td>check</td><td>No</td><td>Ignored by the renderer; for an external example checker</td></tr>
+<tr><td>expect</td><td>No</td><td>Ignored by the renderer; for an external example checker</td></tr>
+<tr><td>name</td><td>No</td><td>Ignored by the renderer; for an external example checker</td></tr>
+<tr><td>after</td><td>No</td><td>Ignored by the renderer; for an external example checker</td></tr>
 </tbody>
 </table>
 <p>Takes body. Always renders as a block <code>&lt;pre&gt;&lt;code&gt;</code> element regardless
 of body type. For inline code, use #~ instead.</p>
+<p><code>check</code>, <code>expect</code>, <code>name</code> and <code>after</code> change nothing in the HTML. A
+tool that compiles a project's examples from the <code>.pdoc</code> source reads them
+(for instance <code>check=none</code> to skip a sketch, or <code>name=setup</code> and
+<code>after=setup</code> to build one example on another), so the reader never sees the
+markings.</p>
 <pre><code class="language-picodoc">[#code language=python : """
     def hello():
         print("world")
@@ -1000,7 +1009,7 @@ arguments become the macro's parameters.</p>
 <p>Parameters can be:</p>
 <ul>
 <li><strong>Required</strong> (marked with ?, the caller must supply a value):
-    <code>target=?</code></li>
+<code>target=?</code></li>
 <li><strong>With default</strong> (given a default value used when the caller omits
 the argument): <code>style=default</code></li>
 </ul>
@@ -1096,10 +1105,10 @@ external filters.</p>
 <p>Values can be set from three sources (listed in ascending precedence):</p>
 <ol>
 <li><strong>Config file</strong> : under the [env] section in
-    <code>picodoc.toml</code></li>
+<code>picodoc.toml</code></li>
 <li><strong>CLI arguments</strong> : using <code>-e name=value</code> (repeatable)</li>
 <li><strong>Document-level #set</strong> : for example
-    <code>[#set name=env.mode : draft]</code></li>
+<code>[#set name=env.mode : draft]</code></li>
 </ol>
 <p>Document-level definitions have the highest precedence. The document author
 has final say.</p>
@@ -1226,9 +1235,9 @@ for:</p>
 </ul>
 </main>
 <footer>
-  <p>Version 0.1 2026-02-27</p>
+<p>Version 0.1 2026-02-27</p>
 
-  <p>Last updated:</p>
+<p>Last updated:</p>
 </footer>
 </body>
 </html>
