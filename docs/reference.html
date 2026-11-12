@@ -364,6 +364,17 @@ lines and paragraphs.</p>
   #*: Third item
 ]</code></pre>
 <p>If no colon and no string literal is present, the macro call has no body.</p>
+<p><strong>Body by name</strong>:</p>
+<p>the body is the argument named <code>body</code>, so it may be written as one, anywhere
+among the other arguments. This puts a long body first and short arguments
+after it.</p>
+<pre><code class="language-picodoc">#p body="A paragraph given by name."
+[#code body="""
+    print("hi")
+    """ language=python]</code></pre>
+<p>A call that gives the body by name and again after its arguments, or by name
+twice, is an error. <code>#set</code> is the exception: its arguments declare the new
+macro's parameters, and <code>body=?</code> there declares the parameter.</p>
 <h3 id="body-whitespace-stripping"><a href="#body-whitespace-stripping">3.5. Body Whitespace Stripping</a></h3>
 <p>Multiline body content (both paragraph and bracketed forms) is
 <strong>dedented</strong>: the longest common leading whitespace shared by all
@@ -526,19 +537,27 @@ document. A broken internal link is a render error.</li>
 </thead>
 <tbody>
 <tr><td>language</td><td>No</td><td>Programming language for syntax class</td></tr>
+<tr><td>expect</td><td>No</td><td>What the example prints: rendered as a second block</td></tr>
 <tr><td>check</td><td>No</td><td>Ignored by the renderer; for an external example checker</td></tr>
-<tr><td>expect</td><td>No</td><td>Ignored by the renderer; for an external example checker</td></tr>
+<tr><td>error</td><td>No</td><td>Ignored by the renderer; for an external example checker</td></tr>
 <tr><td>name</td><td>No</td><td>Ignored by the renderer; for an external example checker</td></tr>
 <tr><td>after</td><td>No</td><td>Ignored by the renderer; for an external example checker</td></tr>
 </tbody>
 </table>
 <p>Takes body. Always renders as a block <code>&lt;pre&gt;&lt;code&gt;</code> element regardless
 of body type. For inline code, use #~ instead.</p>
-<p><code>check</code>, <code>expect</code>, <code>name</code> and <code>after</code> change nothing in the HTML. A
+<p><code>expect</code> is the output the example prints. It renders after the code as a
+block of its own, <code>&lt;pre class="expect"&gt;&lt;code&gt;</code>, so the reader sees it and
+a style sheet can label it. A tool that runs a project's examples compares
+what they print with it.</p>
+<pre><code class="language-picodoc">#code language=python body="""
+    print(6 * 7)
+    """ expect="42"</code></pre>
+<p><code>check</code>, <code>error</code>, <code>name</code> and <code>after</code> change nothing in the HTML. A
 tool that compiles a project's examples from the <code>.pdoc</code> source reads them
-(for instance <code>check=none</code> to skip a sketch, or <code>name=setup</code> and
-<code>after=setup</code> to build one example on another), so the reader never sees the
-markings.</p>
+(for instance <code>check=none</code> to skip a sketch, <code>error=E0400</code> for an example
+that must be refused, or <code>name=setup</code> and <code>after=setup</code> to build one
+example on another), so the reader never sees the markings.</p>
 <pre><code class="language-picodoc">[#code language=python : """
     def hello():
         print("world")

@@ -470,12 +470,69 @@ void test_parse_interp_string_arg(void) {
 }
 
 void test_parse_raw_string_arg(void) {
-    PdNode *doc = parse_ok("[#code body=\"\"\"raw code\"\"\"]\n");
+    PdNode *doc = parse_ok("[#code text=\"\"\"raw code\"\"\"]\n");
     PdNode *arg = doc->as.document.children[0]->as.macro_call.args[0];
     TEST_ASSERT_EQUAL_INT(NODE_RAW_STRING, arg->as.named_arg.value->type);
     TEST_ASSERT_EQUAL_STRING("raw code",
                               arg->as.named_arg.value->as.text.value);
     pd_node_free(doc);
+}
+
+/* --- A body by name --- */
+
+void test_parse_named_body_is_the_body(void) {
+    PdNode *doc = parse_ok("[#code body=\"\"\"raw code\"\"\"]\n");
+    PdNode *call = doc->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(0, call->as.macro_call.arg_count);
+    TEST_ASSERT_NOT_NULL(call->as.macro_call.body);
+    TEST_ASSERT_EQUAL_INT(NODE_RAW_STRING, call->as.macro_call.body->type);
+    TEST_ASSERT_EQUAL_STRING("raw code",
+                              call->as.macro_call.body->as.text.value);
+    pd_node_free(doc);
+}
+
+void test_parse_named_body_before_other_args(void) {
+    PdNode *doc = parse_ok("#code body=\"\"\"x\"\"\" language=c expect=\"1\"\n");
+    PdNode *call = doc->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(2, call->as.macro_call.arg_count);
+    TEST_ASSERT_EQUAL_STRING("language",
+                              call->as.macro_call.args[0]->as.named_arg.name);
+    TEST_ASSERT_EQUAL_STRING("expect",
+                              call->as.macro_call.args[1]->as.named_arg.name);
+    TEST_ASSERT_EQUAL_INT(NODE_RAW_STRING, call->as.macro_call.body->type);
+    pd_node_free(doc);
+}
+
+void test_parse_named_body_bareword(void) {
+    PdNode *doc = parse_ok("[#b body=bold]\n");
+    PdNode *para = doc->as.document.children[0];
+    PdNode *call = para->type == NODE_PARAGRAPH
+                       ? para->as.paragraph.children[0] : para;
+    TEST_ASSERT_EQUAL_INT(0, call->as.macro_call.arg_count);
+    TEST_ASSERT_EQUAL_INT(NODE_BODY, call->as.macro_call.body->type);
+    TEST_ASSERT_EQUAL_INT(1, call->as.macro_call.body->as.body.count);
+    pd_node_free(doc);
+}
+
+void test_parse_set_keeps_body_parameter(void) {
+    PdNode *doc = parse_ok("[#set name=box body=? : x]\n");
+    PdNode *call = doc->as.document.children[0];
+    TEST_ASSERT_EQUAL_INT(2, call->as.macro_call.arg_count);
+    TEST_ASSERT_NOT_NULL(call->as.macro_call.body);
+    pd_node_free(doc);
+}
+
+void test_parse_err_body_named_and_colon(void) {
+    TEST_ASSERT_TRUE(parse_err("#p body=\"one\": two\n", "body is given twice"));
+}
+
+void test_parse_err_body_named_and_string(void) {
+    TEST_ASSERT_TRUE(parse_err("[#code body=\"\"\"x\"\"\" \"\"\"y\"\"\"]\n",
+                               "body is given twice"));
+}
+
+void test_parse_err_body_named_twice(void) {
+    TEST_ASSERT_TRUE(parse_err("[#p body=one body=two]\n", "body is given twice"));
 }
 
 void test_parse_macro_ref_value(void) {
@@ -1237,6 +1294,13 @@ void run_test_parser(void) {
     RUN_TEST(test_parse_bareword_with_dashes);
     RUN_TEST(test_parse_interp_string_arg);
     RUN_TEST(test_parse_raw_string_arg);
+    RUN_TEST(test_parse_named_body_is_the_body);
+    RUN_TEST(test_parse_named_body_before_other_args);
+    RUN_TEST(test_parse_named_body_bareword);
+    RUN_TEST(test_parse_set_keeps_body_parameter);
+    RUN_TEST(test_parse_err_body_named_and_colon);
+    RUN_TEST(test_parse_err_body_named_and_string);
+    RUN_TEST(test_parse_err_body_named_twice);
     RUN_TEST(test_parse_macro_ref_value);
     RUN_TEST(test_parse_bracket_call_as_value);
     RUN_TEST(test_parse_question_mark_value);

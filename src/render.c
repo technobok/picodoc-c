@@ -677,6 +677,17 @@ static int render_block_code(const PdNode *node, RenderState *state) {
     }
 
     bcatcstr(state->out, "</code></pre>");
+
+    /* what the example prints, in a block of its own */
+    char *expect = get_arg_text(node, "expect");
+    if (expect) {
+        bcatcstr(state->out, "<pre class=\"expect\"><code>");
+        bstring escaped = escape_html(expect, (int)strlen(expect));
+        bconcat(state->out, escaped);
+        bdestroy(escaped);
+        bcatcstr(state->out, "</code></pre>");
+        free(expect);
+    }
     return 0;
 }
 

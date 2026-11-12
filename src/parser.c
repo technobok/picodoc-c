@@ -275,6 +275,46 @@ static int parse_named_args(Parser *P, NodeArray *args) {
     return 0;
 }
 
+/*
+ * A call's body may be written by name, `body=VALUE`, anywhere among its
+ * arguments. It is the argument the colon or string form gives, so it is moved
+ * out of the argument list to be the call's body, and a call that gives both
+ * is an error. #set is not asked: its arguments declare the new macro's
+ * parameters, and `body=?` there declares one.
+ * Returns 0, or -1 with the error reported.
+ */
+static int take_named_body(Parser *P, const Token *name_tok,
+                           PdNode **args, int *arg_count, PdNode **body) {
+    if (name_tok->value_len == 3 && memcmp(name_tok->value, "set", 3) == 0)
+        return 0;
+    for (int i = 0; i < *arg_count; i++) {
+        PdNode *arg = args[i];
+        if (arg->type != NODE_NAMED_ARG ||
+            strcmp(arg->as.named_arg.name, "body") != 0)
+            continue;
+        if (*body) {
+            parser_error(P,
+                "the body is given twice: by name (body=) and again",
+                arg->as.named_arg.name_span);
+            return -1;
+        }
+        PdNode *value = arg->as.named_arg.value;
+        arg->as.named_arg.value = NULL;
+        if (value->type != NODE_INTERP_STRING &&
+            value->type != NODE_RAW_STRING) {
+            PdNode **kids = malloc(sizeof(PdNode *));
+            kids[0] = value;
+            value = pd_node_body(kids, 1, kids[0]->span);
+        }
+        *body = value;
+        pd_node_free(arg);
+        for (int j = i; j + 1 < *arg_count; j++) args[j] = args[j + 1];
+        (*arg_count)--;
+        i--;
+    }
+    return 0;
+}
+
 /* --- String parsing --- */
 
 static PdNode *parse_interp_string(Parser *P) {
@@ -628,6 +668,13 @@ static PdNode *parse_unbracketed_call(Parser *P) {
         }
     }
 
+    if (take_named_body(P, name_tok, args, &arg_count, &body) < 0) {
+        for (int i = 0; i < arg_count; i++) pd_node_free(args[i]);
+        free(args);
+        pd_node_free(body);
+        return NULL;
+    }
+
     Position end = prev_end(P);
     return pd_node_macro_call(name_tok->value, name_tok->value_len,
                                args, arg_count, body, false,
@@ -703,6 +750,9 @@ static PdNode *parse_bracketed_call(Parser *P) {
 
     const Token *end_tok = expect(P, TOK_RBRACKET, "expected closing ']'");
     if (!end_tok) goto bracket_fail_args;
+
+    if (take_named_body(P, name_tok, args, &arg_count, &body) < 0)
+        goto bracket_fail_args;
 
     return pd_node_macro_call(name_tok->value, name_tok->value_len,
                                args, arg_count, body, true,
